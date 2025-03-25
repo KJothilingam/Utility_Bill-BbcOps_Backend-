@@ -49,13 +49,24 @@ public class EmployeeController {
         // Validate OTP
         if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
             otpStorage.remove(email); // Clear OTP after successful verification
-            return ResponseEntity.ok(Map.of("message", "OTP verified successfully"));
+
+            // Fetch employee details
+            Employee employee = employeeService.findByEmail(email);
+            if (employee == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "OTP verified successfully",
+                    "userId", employee.getEmployeeId(),
+                    "userName", employee.getName() // Assuming getName() returns full name
+            ));
         }
 
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
     }
 
-//
+    //
     @GetMapping
     public List<Employee> getAllEmployees() {
         return employeeService.getAllEmployees();
