@@ -18,6 +18,9 @@ public class CustomerService {
 
     @Autowired
     private CustomerRepository customerRepository;
+    public List<Customer> getAllCustomers() {
+        return customerRepository.findAll();
+    }
 
     public Map<String, Object> processCsv(MultipartFile file) {
         Map<String, Object> response = new HashMap<>();
@@ -100,5 +103,14 @@ public class CustomerService {
                 headers[5].equalsIgnoreCase("billDueDate") &&
                 headers[6].equalsIgnoreCase("meterNumber") &&
                 headers[7].equalsIgnoreCase("connectionType");
+    }
+
+    public boolean deleteCustomer(Long customerId) {
+        Optional<Customer> customer = customerRepository.findById(customerId);
+        if (customer.isPresent()) {
+            customerRepository.deleteById(customerId);
+            return true;
+        }
+        return false;
     }
 }

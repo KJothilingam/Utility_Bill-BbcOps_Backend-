@@ -1,6 +1,7 @@
 package com.BBC_Ops.BBC_Ops.Controller;
 
 import com.BBC_Ops.BBC_Ops.Model.ApiResponse;
+import com.BBC_Ops.BBC_Ops.Model.Customer;
 import com.BBC_Ops.BBC_Ops.Service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,12 @@ public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
+
+    @GetMapping("/list")
+    public ResponseEntity<List<Customer>> getAllCustomers() {
+        List<Customer> customers = customerService.getAllCustomers();
+        return ResponseEntity.ok(customers);
+    }
 
     @PostMapping("/upload")
     public ResponseEntity<ApiResponse> uploadCsvFile(@RequestParam("file") MultipartFile file) {
@@ -40,6 +47,16 @@ public class CustomerController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse(false, "Server error: " + e.getMessage(), 0, 0));
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteCustomer(@PathVariable Long id) {
+        boolean isDeleted = customerService.deleteCustomer(id);
+        if (isDeleted) {
+            return ResponseEntity.ok("Customer deleted successfully");
+        } else {
+            return ResponseEntity.status(404).body("Customer not found");
         }
     }
 
