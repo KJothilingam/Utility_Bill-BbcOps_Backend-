@@ -1,9 +1,8 @@
 package com.BBC_Ops.BBC_Ops.Model;
 
-
 import jakarta.persistence.*;
-
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "employees")
@@ -32,6 +31,27 @@ public class Employee {
 
     @Column(nullable = false)
     private String designation;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(nullable = false, updatable = false)
+    private Date createdAt = new Date();
+
+    // Getters and Setters...
+
+
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "employeeId=" + employeeId +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", dob=" + dob +
+                ", gender=" + gender +
+                ", designation='" + designation + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 
     public Long getEmployeeId() {
         return employeeId;
@@ -89,17 +109,12 @@ public class Employee {
         this.designation = designation;
     }
 
-    @Override
-    public String toString() {
-        return "Employee{" +
-                "employeeId=" + employeeId +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", dob=" + dob +
-                ", gender=" + gender +
-                ", designation='" + designation + '\'' +
-                '}';
+    public Date getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 }
 

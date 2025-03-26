@@ -1,9 +1,8 @@
 package com.BBC_Ops.BBC_Ops.Model;
+import java.time.LocalDate;
 
+import com.BBC_Ops.BBC_Ops.Model.ConnectionType;
 import jakarta.persistence.*;
-
-import java.util.Date;
-import java.util.List;
 
 @Entity
 @Table(name = "customers")
@@ -16,13 +15,6 @@ public class Customer {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
-    private int unitConsumption;
-
-    @Column(nullable = false)
-    @Temporal(TemporalType.DATE)
-    private Date billDueDate;
-
     @Column(nullable = false, unique = true)
     private String email;
 
@@ -32,6 +24,123 @@ public class Customer {
     @Column(nullable = false)
     private String address;
 
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Bill> bills;
+    @Column(nullable = false)
+    private int unitConsumption;
+
+    @Column(nullable = false)
+    private LocalDate billDueDate;  // ✅ Now using LocalDate
+
+    @Column(nullable = false, unique = true)
+    private String meterNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ConnectionType connectionType;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDate createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDate.now();
+    }
+
+    // Getters and Setters...
+
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "customerId=" + customerId +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", address='" + address + '\'' +
+                ", unitConsumption=" + unitConsumption +
+                ", billDueDate=" + billDueDate +
+                ", meterNumber='" + meterNumber + '\'' +
+                ", connectionType=" + connectionType +
+                ", createdAt=" + createdAt +
+                '}';
+    }
+
+    public Long getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Long customerId) {
+        this.customerId = customerId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public int getUnitConsumption() {
+        return unitConsumption;
+    }
+
+    public void setUnitConsumption(int unitConsumption) {
+        this.unitConsumption = unitConsumption;
+    }
+
+    public LocalDate getBillDueDate() {
+        return billDueDate;
+    }
+
+    public void setBillDueDate(LocalDate billDueDate) {
+        this.billDueDate = billDueDate;
+    }
+
+    public String getMeterNumber() {
+        return meterNumber;
+    }
+
+    public void setMeterNumber(String meterNumber) {
+        this.meterNumber = meterNumber;
+    }
+
+    public ConnectionType getConnectionType() {
+        return connectionType;
+    }
+
+    public void setConnectionType(ConnectionType connectionType) {
+        this.connectionType = connectionType;
+    }
+
+    public LocalDate getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDate createdAt) {
+        this.createdAt = createdAt;
+    }
 }
