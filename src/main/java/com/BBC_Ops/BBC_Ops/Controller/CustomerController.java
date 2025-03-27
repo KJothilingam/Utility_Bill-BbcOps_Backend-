@@ -63,13 +63,36 @@ public class CustomerController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer) {
-        boolean success = customerService.updateCustomer(id, updatedCustomer);
+    public ResponseEntity<Map<String, Object>> updateCustomer(
+            @PathVariable Long id, @RequestBody Customer updatedCustomer) {
+
+        Customer savedCustomer = customerService.updateCustomer(id, updatedCustomer);
         Map<String, Object> response = new HashMap<>();
-        response.put("status", success);
-        response.put("customer", success ? updatedCustomer : null);
+
+        if (savedCustomer != null) {
+            response.put("status", true);
+            response.put("customer", Map.of(
+                    "customerId", savedCustomer.getCustomerId(),
+                    "name", savedCustomer.getName(),
+                    "email", savedCustomer.getEmail(),
+                    "phoneNumber", savedCustomer.getPhoneNumber(),
+                    "address", savedCustomer.getAddress(),
+                    "unitConsumption", savedCustomer.getUnitConsumption(),
+                    "billDueDate", savedCustomer.getBillDueDate().toString(), // Convert to String
+                    "meterNumber", savedCustomer.getMeterNumber(),
+                    "connectionType", savedCustomer.getConnectionType()
+            ));
+        } else {
+            response.put("status", false);
+            response.put("customer", null);
+        }
+
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/add")
+    public Map<String, Object> addCustomer(@RequestBody Customer customer) {
+        return customerService.addCustomer(customer);
+    }
 
 }

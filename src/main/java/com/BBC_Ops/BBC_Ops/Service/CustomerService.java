@@ -128,10 +128,12 @@ public class CustomerService {
         return response;
     }
 
-    public boolean updateCustomer(Long id, Customer updatedCustomer) {
+    public Customer updateCustomer(Long id, Customer updatedCustomer) {
         Optional<Customer> existingCustomerOpt = customerRepository.findById(id);
         if (existingCustomerOpt.isPresent()) {
             Customer existingCustomer = existingCustomerOpt.get();
+
+            // Updating fields
             existingCustomer.setName(updatedCustomer.getName());
             existingCustomer.setEmail(updatedCustomer.getEmail());
             existingCustomer.setPhoneNumber(updatedCustomer.getPhoneNumber());
@@ -141,9 +143,38 @@ public class CustomerService {
             existingCustomer.setMeterNumber(updatedCustomer.getMeterNumber());
             existingCustomer.setConnectionType(updatedCustomer.getConnectionType());
 
-            customerRepository.save(existingCustomer);
-            return true;
+            // Save and return the updated customer
+            return customerRepository.save(existingCustomer);
         }
-        return false;
+        return null;
+    }
+
+    public Map<String, Object> addCustomer(Customer customer) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (customerRepository.existsByEmail(customer.getEmail())) {
+            response.put("success", false);
+            response.put("message", "Email already exists!");
+            return response;
+        }
+
+        if (customerRepository.existsByPhoneNumber(customer.getPhoneNumber())) {
+            response.put("success", false);
+            response.put("message", "Phone number already exists!");
+            return response;
+        }
+
+        if (customerRepository.existsByMeterNumber(customer.getMeterNumber())) {
+            response.put("success", false);
+            response.put("message", "Meter number already exists!");
+            return response;
+        }
+
+        Customer savedCustomer = customerRepository.save(customer);
+        response.put("success", true);
+        response.put("message", "Customer added successfully!");
+        response.put("customer", savedCustomer);
+
+        return response;
     }
 }
