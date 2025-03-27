@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +62,14 @@ public class CustomerController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, Object>> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer) {
+        boolean success = customerService.updateCustomer(id, updatedCustomer);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", success);
+        response.put("customer", success ? updatedCustomer : null);
+        return ResponseEntity.ok(response);
+    }
 
 
 }

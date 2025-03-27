@@ -18,6 +18,7 @@ public class CustomerService {
 
     @Autowired
     private CustomerRepository customerRepository;
+
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
     }
@@ -93,6 +94,7 @@ public class CustomerService {
 
         return response;
     }
+
     private boolean isValidHeader(String[] headers) {
         return headers != null && headers.length == 8 &&
                 headers[0].equalsIgnoreCase("name") &&
@@ -124,5 +126,24 @@ public class CustomerService {
         }
 
         return response;
+    }
+
+    public boolean updateCustomer(Long id, Customer updatedCustomer) {
+        Optional<Customer> existingCustomerOpt = customerRepository.findById(id);
+        if (existingCustomerOpt.isPresent()) {
+            Customer existingCustomer = existingCustomerOpt.get();
+            existingCustomer.setName(updatedCustomer.getName());
+            existingCustomer.setEmail(updatedCustomer.getEmail());
+            existingCustomer.setPhoneNumber(updatedCustomer.getPhoneNumber());
+            existingCustomer.setAddress(updatedCustomer.getAddress());
+            existingCustomer.setUnitConsumption(updatedCustomer.getUnitConsumption());
+            existingCustomer.setBillDueDate(updatedCustomer.getBillDueDate());
+            existingCustomer.setMeterNumber(updatedCustomer.getMeterNumber());
+            existingCustomer.setConnectionType(updatedCustomer.getConnectionType());
+
+            customerRepository.save(existingCustomer);
+            return true;
+        }
+        return false;
     }
 }
