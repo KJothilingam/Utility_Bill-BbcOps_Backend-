@@ -105,12 +105,24 @@ public class CustomerService {
                 headers[7].equalsIgnoreCase("connectionType");
     }
 
-    public boolean deleteCustomer(Long customerId) {
-        Optional<Customer> customer = customerRepository.findById(customerId);
-        if (customer.isPresent()) {
+    public Map<String, Object> deleteCustomer(Long customerId) {
+        Map<String, Object> response = new HashMap<>();
+
+        Optional<Customer> customerOpt = customerRepository.findById(customerId);
+        if (customerOpt.isPresent()) {
+            Customer customer = customerOpt.get();
             customerRepository.deleteById(customerId);
-            return true;
+
+            response.put("message", "Customer deleted successfully");
+            response.put("customerId", customerId);
+            response.put("customerName", customer.getName());
+            response.put("status", true);
+        } else {
+            response.put("message", "Customer not found");
+            response.put("customerId", customerId);
+            response.put("status", false);
         }
-        return false;
+
+        return response;
     }
 }
