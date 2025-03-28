@@ -66,8 +66,8 @@ public class CustomerController {
     public ResponseEntity<Map<String, Object>> updateCustomer(
             @PathVariable Long id, @RequestBody Customer updatedCustomer) {
 
-        Customer savedCustomer = customerService.updateCustomer(id, updatedCustomer);
         Map<String, Object> response = new HashMap<>();
+        Customer savedCustomer = customerService.updateCustomer(id, updatedCustomer);
 
         if (savedCustomer != null) {
             response.put("status", true);
@@ -78,21 +78,28 @@ public class CustomerController {
                     "phoneNumber", savedCustomer.getPhoneNumber(),
                     "address", savedCustomer.getAddress(),
                     "unitConsumption", savedCustomer.getUnitConsumption(),
-                    "billDueDate", savedCustomer.getBillDueDate().toString(), // Convert to String
+                    "billDueDate", savedCustomer.getBillDueDate().toString(),
                     "meterNumber", savedCustomer.getMeterNumber(),
                     "connectionType", savedCustomer.getConnectionType()
             ));
         } else {
             response.put("status", false);
-            response.put("customer", null);
+            response.put("message", "Customer not found or update failed.");
         }
 
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/add")
-    public Map<String, Object> addCustomer(@RequestBody Customer customer) {
-        return customerService.addCustomer(customer);
+    public ResponseEntity<Map<String, Object>> addCustomer(@RequestBody Customer customer) {
+        Map<String, Object> response = customerService.addCustomer(customer);
+
+        if ((boolean) response.get("success")) {
+            return ResponseEntity.ok(response); // Return success response
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // Return error response
+        }
     }
+
 
 }
