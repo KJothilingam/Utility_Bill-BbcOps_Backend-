@@ -10,7 +10,10 @@ import com.BBC_Ops.BBC_Ops.Service.BillingContext;
 import com.BBC_Ops.BBC_Ops.Service.DiscountedBillingStrategy;
 import com.BBC_Ops.BBC_Ops.Service.PeakHourBillingStrategy;
 import com.BBC_Ops.BBC_Ops.Service.StandardBillingStrategy;
+import jakarta.annotation.PostConstruct;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -36,6 +39,20 @@ public class BillService {
     @Autowired
     private PeakHourBillingStrategy peakHourBillingStrategy;
 
+    /** ✅ Runs at startup */
+    @PostConstruct
+    public void checkAndUpdateOverdueBills() {
+        System.out.println("Checking overdue bills...");
+        updateOverdueBills();
+    }
+
+    /** ✅ Runs every day at midnight to update overdue bills */
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void updateOverdueBills() {
+        billRepository.updateOverdueBills();
+        System.out.println("Overdue bills updated successfully.");
+    }
 
     public Bill generateBill(String meterNumber, int unitConsumed, Date monthDate) {
         Optional<Customer> optionalCustomer = customerRepository.findByMeterNumber(meterNumber);

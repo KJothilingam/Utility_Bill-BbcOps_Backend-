@@ -66,4 +66,12 @@ public class BillController {
             this.monthDate = monthDate;
         }
     }
+
+
+    /** ✅ API to manually trigger overdue check */
+    @PutMapping("/update-overdue")
+    public ResponseEntity<String> updateOverdueBills() {
+        billService.updateOverdueBills();
+        return ResponseEntity.ok("Overdue bills updated successfully.");
+    }
 }
