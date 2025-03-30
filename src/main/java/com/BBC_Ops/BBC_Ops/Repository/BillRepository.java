@@ -25,6 +25,8 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     // Find all unpaid bills (overdue or pending)
     List<Bill> findByPaymentStatusIn(List<PaymentStatus> statuses);
 
+    List<Bill> findAll();
+
     boolean existsByCustomerAndMonthDate(Customer customer, Date monthDate);
 
 }

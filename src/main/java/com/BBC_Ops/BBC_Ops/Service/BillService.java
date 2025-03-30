@@ -13,10 +13,7 @@ import com.BBC_Ops.BBC_Ops.Service.StandardBillingStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class BillService {
@@ -65,9 +62,9 @@ public class BillService {
 
         double totalBillAmount = billingContext.generateBill(unitConsumed);
 
-        // ✅ Set due date (10 days after bill generation)
+        // ✅ Set due date (10 days after `monthDate`, not today's date!)
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
+        calendar.setTime(monthDate);  // ✅ Use selected billing month
         calendar.add(Calendar.DAY_OF_MONTH, 10);
         Date dueDate = calendar.getTime();
 
@@ -78,7 +75,7 @@ public class BillService {
         bill.setMonthDate(monthDate);
         bill.setTotalBillAmount(totalBillAmount);
         bill.setPaymentStatus(PaymentStatus.PENDING);
-        bill.setCreatedAt(new Date());
+        bill.setCreatedAt(monthDate);  // ✅ Use `monthDate` instead of `new Date()`
         bill.setDueDate(dueDate);
 
         // ✅ Save bill
@@ -87,6 +84,12 @@ public class BillService {
         // ✅ Reset unit consumption for the customer
         customer.setUnitConsumption(0);
         customerRepository.save(customer);
+
+        // ✅ Logging for Debugging
+        System.out.println("Bill Generated - Invoice ID: " + bill.getInvoiceId());
+        System.out.println("Billing Month: " + monthDate);
+        System.out.println("Due Date: " + dueDate);
+        System.out.println("Total Amount: Rs. " + totalBillAmount);
 
         return savedBill;
     }
@@ -99,5 +102,10 @@ public class BillService {
 
     private boolean isEligibleForDiscount(Customer customer) {
         return customer.getEmail().endsWith("@example.com"); // Example: Apply discount for specific customers
+    }
+
+
+    public List<Bill> getAllBills() {
+        return billRepository.findAll();
     }
 }

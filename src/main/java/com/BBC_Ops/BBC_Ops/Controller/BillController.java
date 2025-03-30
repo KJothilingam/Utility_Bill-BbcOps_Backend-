@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/bills")
@@ -15,6 +16,12 @@ public class BillController {
 
     @Autowired
     private BillService billService;
+
+
+    @GetMapping("/all")
+    public List<Bill> getAllBills() {
+        return billService.getAllBills();
+    }
 
     @PostMapping("/generate")
     public ResponseEntity<BillResponse> generateBill(@RequestBody BillRequest request) {
