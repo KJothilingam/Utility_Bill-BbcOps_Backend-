@@ -2,6 +2,7 @@ package com.BBC_Ops.BBC_Ops.Model;
 
 import com.BBC_Ops.BBC_Ops.Enum.PaymentStatus;
 import jakarta.persistence.*;
+import java.util.Calendar;
 import java.util.Date;
 
 @Entity
@@ -37,9 +38,19 @@ public class Bill {
     @Column(nullable = false, updatable = false)
     private Date createdAt = new Date();
 
+    @Temporal(TemporalType.DATE)
+    @Column(nullable = false)
+    private Date dueDate;
+
     @OneToOne(mappedBy = "bill", cascade = CascadeType.ALL)
     private Transaction transaction;
 
+    public Bill() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(this.createdAt);
+        calendar.add(Calendar.DAY_OF_MONTH, 10);
+        this.dueDate = calendar.getTime();
+    }
 
     @Override
     public String toString() {
@@ -52,6 +63,7 @@ public class Bill {
                 ", totalBillAmount=" + totalBillAmount +
                 ", discountApplied=" + discountApplied +
                 ", createdAt=" + createdAt +
+                ", dueDate=" + dueDate +
                 ", transaction=" + transaction +
                 '}';
     }
@@ -120,6 +132,14 @@ public class Bill {
         this.createdAt = createdAt;
     }
 
+    public Date getDueDate() {
+        return dueDate;
+    }
+
+    public void setDueDate(Date dueDate) {
+        this.dueDate = dueDate;
+    }
+
     public Transaction getTransaction() {
         return transaction;
     }
@@ -127,8 +147,4 @@ public class Bill {
     public void setTransaction(Transaction transaction) {
         this.transaction = transaction;
     }
-
-    // Getters and Setters...
-
-
 }
