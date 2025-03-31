@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/bills")
@@ -26,7 +27,12 @@ public class BillController {
     @PostMapping("/generate")
     public ResponseEntity<BillResponse> generateBill(@RequestBody BillRequest request) {
         try {
+            System.out.println("Received Request - Meter: " + request.getMeterNumber() +
+                    ", Unit Consumed: " + request.getUnitConsumed() +
+                    ", Month Date: " + request.getMonthDate());
+
             Bill bill = billService.generateBill(request.getMeterNumber(), request.getUnitConsumed(), request.getMonthDate());
+
             return ResponseEntity.ok(new BillResponse(true, "Bill generated successfully", bill));
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(new BillResponse(false, e.getMessage(), null));
@@ -34,6 +40,7 @@ public class BillController {
             return ResponseEntity.badRequest().body(new BillResponse(false, "Error generating bill", null));
         }
     }
+
     // Inner class for request payload
     public static class BillRequest {
         private String meterNumber;
@@ -67,10 +74,10 @@ public class BillController {
     }
 
 
-    /** ✅ API to manually trigger overdue check */
-    @PutMapping("/update-overdue")
-    public ResponseEntity<String> updateOverdueBills() {
-        billService.updateOverdueBills();
-        return ResponseEntity.ok("Overdue bills updated successfully.");
-    }
+        /** ✅ API to manually trigger overdue check */
+        @PutMapping("/update-overdue")
+        public ResponseEntity<Map<String, String>> updateOverdueBills() {
+            billService.updateOverdueBills();
+            return ResponseEntity.ok(Map.of("message", "Overdue bills updated successfully."));
+        }
 }

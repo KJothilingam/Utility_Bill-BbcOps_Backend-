@@ -55,14 +55,24 @@ public class BillService {
     }
 
     public Bill generateBill(String meterNumber, int unitConsumed, Date monthDate) {
+        // ✅ Debugging Log - Check incoming parameters
+        System.out.println("Generating bill for Meter: " + meterNumber +
+                ", Unit Consumed: " + unitConsumed +
+                ", Month Date: " + monthDate);
+
+        // ✅ Validate unit consumption
+        if (unitConsumed <= 0) {
+            throw new IllegalArgumentException("Invalid Unit Consumed: " + unitConsumed);
+        }
+
+        // ✅ Fetch customer based on meter number
         Optional<Customer> optionalCustomer = customerRepository.findByMeterNumber(meterNumber);
         if (optionalCustomer.isEmpty()) {
             throw new CustomerNotFoundException("Invalid meter number: " + meterNumber);
         }
-
         Customer customer = optionalCustomer.get();
 
-        // ✅ Check if a bill already exists for the given customer and month
+        // ✅ Check if a bill already exists for this customer and month
         boolean billExists = billRepository.existsByCustomerAndMonthDate(customer, monthDate);
         if (billExists) {
             throw new IllegalStateException("Bill already generated for this month: " + monthDate);
@@ -77,33 +87,35 @@ public class BillService {
             billingContext.setBillingStrategy(standardBillingStrategy);
         }
 
+        // ✅ Calculate total bill amount
         double totalBillAmount = billingContext.generateBill(unitConsumed);
 
-        // ✅ Set due date (10 days after `monthDate`, not today's date!)
+        // ✅ Set due date (10 days after monthDate)
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(monthDate);  // ✅ Use selected billing month
+        calendar.setTime(monthDate);
         calendar.add(Calendar.DAY_OF_MONTH, 10);
         Date dueDate = calendar.getTime();
 
-        // ✅ Create Bill Object
+        // ✅ Create and Save Bill Object
         Bill bill = new Bill();
         bill.setCustomer(customer);
         bill.setInvoiceId(UUID.randomUUID().toString());
         bill.setMonthDate(monthDate);
         bill.setTotalBillAmount(totalBillAmount);
         bill.setPaymentStatus(PaymentStatus.PENDING);
-        bill.setCreatedAt(monthDate);  // ✅ Use `monthDate` instead of `new Date()`
+        bill.setCreatedAt(new Date());  // ✅ Set actual creation time
         bill.setDueDate(dueDate);
+        bill.setUnitConsumed(unitConsumed);  // ✅ Ensure unitConsumed is set before saving
 
-        // ✅ Save bill
         Bill savedBill = billRepository.save(bill);
 
-        // ✅ Reset unit consumption for the customer
+        // ✅ Reset unit consumption after saving the bill
         customer.setUnitConsumption(0);
         customerRepository.save(customer);
 
         // ✅ Logging for Debugging
-        System.out.println("Bill Generated - Invoice ID: " + bill.getInvoiceId());
+        System.out.println("✅ Bill Generated Successfully!");
+        System.out.println("Invoice ID: " + bill.getInvoiceId());
         System.out.println("Billing Month: " + monthDate);
         System.out.println("Due Date: " + dueDate);
         System.out.println("Total Amount: Rs. " + totalBillAmount);
