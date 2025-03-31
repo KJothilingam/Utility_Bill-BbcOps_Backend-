@@ -1,6 +1,7 @@
 package com.BBC_Ops.BBC_Ops.Model;
 
 import com.BBC_Ops.BBC_Ops.Enum.PaymentStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.Calendar;
 import java.util.Date;
@@ -43,6 +44,7 @@ public class Bill {
     private Date dueDate;
 
     @OneToOne(mappedBy = "bill", cascade = CascadeType.ALL)
+    @JsonIgnore
     private Transaction transaction;
 
     @Column(nullable = false) // ✅ Add unitConsumed field

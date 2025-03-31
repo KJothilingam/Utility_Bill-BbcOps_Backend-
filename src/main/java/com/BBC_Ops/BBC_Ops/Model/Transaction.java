@@ -1,5 +1,7 @@
 package com.BBC_Ops.BBC_Ops.Model;
 
+import com.BBC_Ops.BBC_Ops.Enum.PaymentMethod;
+import com.BBC_Ops.BBC_Ops.Enum.TransactionStatus;
 import jakarta.persistence.*;
 import java.util.Date;
 
@@ -11,7 +13,7 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "bill_id", nullable = false)
     private Bill bill;
 
@@ -22,9 +24,15 @@ public class Transaction {
     @Column(nullable = false)
     private Double amountPaid;
 
+    @Column(nullable = false)
+    private Double discountApplied;
+
+    @Column(nullable = false)
+    private Double finalAmountPaid;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, updatable = false)
-    private Date paymentDate = new Date();
+    private Date paymentDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -32,9 +40,12 @@ public class Transaction {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentStatus status;
+    private TransactionStatus status; // Updated from PaymentStatus to TransactionStatus
 
-    // Getters and Setters...
+    @PrePersist
+    protected void onCreate() {
+        this.paymentDate = new Date();
+    }
 
     @Override
     public String toString() {
@@ -43,6 +54,8 @@ public class Transaction {
                 ", bill=" + bill +
                 ", customer=" + customer +
                 ", amountPaid=" + amountPaid +
+                ", discountApplied=" + discountApplied +
+                ", finalAmountPaid=" + finalAmountPaid +
                 ", paymentDate=" + paymentDate +
                 ", paymentMethod=" + paymentMethod +
                 ", status=" + status +
@@ -81,6 +94,22 @@ public class Transaction {
         this.amountPaid = amountPaid;
     }
 
+    public Double getDiscountApplied() {
+        return discountApplied;
+    }
+
+    public void setDiscountApplied(Double discountApplied) {
+        this.discountApplied = discountApplied;
+    }
+
+    public Double getFinalAmountPaid() {
+        return finalAmountPaid;
+    }
+
+    public void setFinalAmountPaid(Double finalAmountPaid) {
+        this.finalAmountPaid = finalAmountPaid;
+    }
+
     public Date getPaymentDate() {
         return paymentDate;
     }
@@ -97,19 +126,11 @@ public class Transaction {
         this.paymentMethod = paymentMethod;
     }
 
-    public PaymentStatus getStatus() {
+    public TransactionStatus getStatus() {
         return status;
     }
 
-    public void setStatus(PaymentStatus status) {
+    public void setStatus(TransactionStatus status) {
         this.status = status;
     }
-}
-
-enum PaymentMethod {
-    CASH, CREDIT_CARD, DEBIT_CARD, UPI
-}
-
-enum PaymentStatus {
-    SUCCESS, FAILED, PENDING
 }
