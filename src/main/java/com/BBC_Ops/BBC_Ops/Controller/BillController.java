@@ -34,7 +34,6 @@ public class BillController {
             return ResponseEntity.badRequest().body(new BillResponse(false, "Error generating bill", null));
         }
     }
-
     // Inner class for request payload
     public static class BillRequest {
         private String meterNumber;
