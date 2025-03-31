@@ -46,6 +46,7 @@ public class BillService {
         updateOverdueBills();
     }
 
+
     /** ✅ Runs every day at midnight to update overdue bills */
     @Scheduled(cron = "0 0 0 * * ?")
     @Transactional
@@ -136,5 +137,9 @@ public class BillService {
 
     public List<Bill> getAllBills() {
         return billRepository.findAll();
+    }
+
+    public List<Bill> getUnpaidBillsByMeterNumber(String meterNumber) {
+        return billRepository.findByCustomer_MeterNumberAndPaymentStatus(meterNumber, PaymentStatus.PENDING);
     }
 }

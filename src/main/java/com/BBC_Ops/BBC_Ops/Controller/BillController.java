@@ -80,4 +80,13 @@ public class BillController {
             billService.updateOverdueBills();
             return ResponseEntity.ok(Map.of("message", "Overdue bills updated successfully."));
         }
+
+    @GetMapping("/unpaid/{meterNumber}")
+    public ResponseEntity<List<Bill>> getUnpaidBills(@PathVariable String meterNumber) {
+        List<Bill> unpaidBills = billService.getUnpaidBillsByMeterNumber(meterNumber);
+        if (unpaidBills.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(unpaidBills);
+    }
 }

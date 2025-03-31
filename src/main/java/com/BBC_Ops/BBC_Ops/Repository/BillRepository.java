@@ -36,4 +36,7 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
 
     boolean existsByCustomerAndMonthDate(Customer customer, Date monthDate);
 
+    List<Bill> findByCustomer_MeterNumberAndPaymentStatus(String meterNumber, PaymentStatus paymentStatus);
+
+
 }
