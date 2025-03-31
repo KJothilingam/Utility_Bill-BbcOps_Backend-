@@ -89,4 +89,16 @@ public class BillController {
         }
         return ResponseEntity.ok(unpaidBills);
     }
+
+    @GetMapping("/pending/recent")
+    public ResponseEntity<List<Bill>> getRecentPendingBills() {
+        List<Bill> recentPendingBills = billService.getRecentPendingBills(3); // Fetch Top 3
+        return recentPendingBills.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(recentPendingBills);
+    }
+
+    @GetMapping("/customer/{customerId}")
+    public List<Bill> getBillsByCustomerId(@PathVariable Long customerId) {
+        return billService.getBillsByCustomerId(customerId);
+    }
+
 }

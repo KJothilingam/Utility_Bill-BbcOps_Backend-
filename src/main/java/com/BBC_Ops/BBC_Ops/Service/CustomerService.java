@@ -178,4 +178,8 @@ public class CustomerService {
         return response;
     }
 
+    public Customer findByEmail(String email) {
+        return customerRepository.findByEmail(email);
+    }
+
 }

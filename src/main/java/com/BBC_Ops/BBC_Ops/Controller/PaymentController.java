@@ -53,4 +53,9 @@ public class PaymentController {
             ));
         }
     }
+
+    @PostMapping("/customer/process")
+    public PaymentResponse processPaymentByCustomer(@RequestBody PaymentRequest paymentRequest) {
+        return paymentService.processPaymentbyCustomer(paymentRequest);
+    }
 }

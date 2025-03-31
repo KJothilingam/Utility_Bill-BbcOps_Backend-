@@ -4,11 +4,15 @@ import com.BBC_Ops.BBC_Ops.Enum.PaymentStatus;
 import com.BBC_Ops.BBC_Ops.Model.Bill;
 import com.BBC_Ops.BBC_Ops.Model.Customer;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
-
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -19,6 +23,7 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     @Transactional
     @Query("UPDATE Bill b SET b.paymentStatus = 'OVERDUE' WHERE b.dueDate < CURRENT_DATE AND b.paymentStatus = 'PENDING'")
     void updateOverdueBills();
+    List<Bill> findByCustomer_CustomerId(Long customerId);
 
     // Find bill by invoice ID (unique identifier for each bill)
     Optional<Bill> findByInvoiceId(String invoiceId);
@@ -38,5 +43,8 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
 
     List<Bill> findByCustomer_MeterNumberAndPaymentStatus(String meterNumber, PaymentStatus paymentStatus);
 
+
+    @Query(value = "SELECT b FROM Bill b WHERE b.paymentStatus = 'PENDING' ORDER BY b.dueDate DESC")
+    List<Bill> findTopRecentPendingBills();  // Fetch all pending bills, limit applied in service
 
 }

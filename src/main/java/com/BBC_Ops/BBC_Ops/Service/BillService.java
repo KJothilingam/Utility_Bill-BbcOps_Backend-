@@ -1,4 +1,5 @@
 package com.BBC_Ops.BBC_Ops.Service;
+import org.springframework.data.domain.Pageable;
 
 import com.BBC_Ops.BBC_Ops.Enum.PaymentStatus;
 import com.BBC_Ops.BBC_Ops.Exceptions.CustomerNotFoundException;
@@ -15,8 +16,10 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class BillService {
@@ -142,4 +145,12 @@ public class BillService {
     public List<Bill> getUnpaidBillsByMeterNumber(String meterNumber) {
         return billRepository.findByCustomer_MeterNumberAndPaymentStatus(meterNumber, PaymentStatus.PENDING);
     }
+    public List<Bill> getRecentPendingBills(int limit) {
+        List<Bill> pendingBills = billRepository.findTopRecentPendingBills();
+        return pendingBills.stream().limit(limit).collect(Collectors.toList()); // Apply limit manually
+    }
+    public List<Bill> getBillsByCustomerId(Long customerId) {
+        return billRepository.findByCustomer_CustomerId(customerId);
+    }
+
 }
