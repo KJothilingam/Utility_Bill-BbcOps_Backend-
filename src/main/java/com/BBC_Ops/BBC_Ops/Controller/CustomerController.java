@@ -38,11 +38,19 @@ public class CustomerController {
             int rejectedRecords = (int) response.getOrDefault("rejectedRecords", 0);
             List<String> errors = (List<String>) response.getOrDefault("errors", new ArrayList<>());
 
-            if (success) {
-                return ResponseEntity.ok(new ApiResponse(true, "File uploaded successfully", validRecords, rejectedRecords));
+            ApiResponse apiResponse = new ApiResponse(success, "File processed", validRecords, rejectedRecords, errors);
+
+            if (validRecords > 0 && rejectedRecords > 0) {
+                // ✅ Partial success (Return 200 instead of 400)
+                return ResponseEntity.ok(apiResponse);
+            } else if (success) {
+                // ✅ Full success
+                return ResponseEntity.ok(apiResponse);
             } else {
-                return ResponseEntity.badRequest().body(new ApiResponse(false, "Validation errors", validRecords, rejectedRecords, errors));
+                // ❌ Complete failure (return 400)
+                return ResponseEntity.badRequest().body(apiResponse);
             }
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiResponse(false, "Server error: " + e.getMessage(), 0, 0));

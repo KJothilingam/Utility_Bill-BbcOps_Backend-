@@ -4,14 +4,8 @@ import com.BBC_Ops.BBC_Ops.Model.Customer;
 import com.BBC_Ops.BBC_Ops.Model.PaymentRecord;
 import com.BBC_Ops.BBC_Ops.Service.CustomerService;
 import com.BBC_Ops.BBC_Ops.Service.PaymentRecordService;
-import com.BBC_Ops.BBC_Ops.Utils.PaymentResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 

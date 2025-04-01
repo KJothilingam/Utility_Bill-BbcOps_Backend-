@@ -32,10 +32,12 @@ public class CustomerService {
         return customerRepository.findAll();
     }
 
+
     public Map<String, Object> processCsv(MultipartFile file) {
         Map<String, Object> response = new HashMap<>();
         List<String> errors = new ArrayList<>();
         List<Customer> validCustomers = new ArrayList<>();
+        List<Wallet> walletsToSave = new ArrayList<>();
 
         int validCount = 0;
         int rejectedCount = 0;
@@ -69,14 +71,26 @@ public class CustomerService {
                     customer.setMeterNumber(record[6]);
                     customer.setConnectionType(ConnectionType.valueOf(record[7].toUpperCase()));
 
+                    // Check for duplicate records
                     if (customerRepository.existsByEmail(customer.getEmail()) ||
                             customerRepository.existsByPhoneNumber(customer.getPhoneNumber()) ||
                             customerRepository.existsByMeterNumber(customer.getMeterNumber())) {
                         errors.add("Duplicate record at row " + rowNum + ": " + customer.getEmail());
                         rejectedCount++;
                     } else {
+                        // Save customer and create wallet for each valid customer
                         validCustomers.add(customer);
                         validCount++;
+
+                        // Create a new wallet for the customer with all balances initialized to zero
+                        Wallet wallet = new Wallet();
+                        wallet.setCustomer(customer); // Link the wallet to the customer
+                        wallet.setCreditCardBalance(0);
+                        wallet.setDebitCardBalance(0);
+                        wallet.setWalletBalance(0);
+                        wallet.setUpiBalance(0);
+
+                        walletsToSave.add(wallet); // Add the wallet to be saved after all customers are processed
                     }
 
                 } catch (Exception e) {
@@ -85,8 +99,10 @@ public class CustomerService {
                 }
             }
 
+            // Save valid customers and their wallets
             if (!validCustomers.isEmpty()) {
                 customerRepository.saveAll(validCustomers);
+                walletRepository.saveAll(walletsToSave); // Save all wallets after customers are saved
             }
 
             response.put("success", errors.isEmpty());
@@ -103,6 +119,7 @@ public class CustomerService {
 
         return response;
     }
+
 
     private boolean isValidHeader(String[] headers) {
         return headers != null && headers.length == 8 &&
@@ -148,27 +165,6 @@ public class CustomerService {
     }
 
 
-//    public Map<String, Object> deleteCustomer(Long customerId) {
-//        Map<String, Object> response = new HashMap<>();
-//
-//        Optional<Customer> customerOpt = customerRepository.findById(customerId);
-//        if (customerOpt.isPresent()) {
-//            Customer customer = customerOpt.get();
-//            customerRepository.deleteById(customerId);
-//
-//            response.put("message", "Customer deleted successfully");
-//            response.put("customerId", customerId);
-//            response.put("customerName", customer.getName());
-//            response.put("status", true);
-//        } else {
-//            response.put("message", "Customer not found");
-//            response.put("customerId", customerId);
-//            response.put("status", false);
-//        }
-//
-//        return response;
-//    }
-
     public Customer updateCustomer(Long id, Customer updatedCustomer) {
         Optional<Customer> existingCustomerOpt = customerRepository.findById(id);
         if (existingCustomerOpt.isPresent()) {
@@ -189,35 +185,6 @@ public class CustomerService {
         }
         return null;
     }
-
-//    public Map<String, Object> addCustomer(Customer customer) {
-//        Map<String, Object> response = new HashMap<>();
-//
-//        if (customerRepository.existsByEmail(customer.getEmail())) {
-//            response.put("success", false);
-//            response.put("message", "Email already exists!");
-//            return response;
-//        }
-//
-//        if (customerRepository.existsByPhoneNumber(customer.getPhoneNumber())) {
-//            response.put("success", false);
-//            response.put("message", "Phone number already exists!");
-//            return response;
-//        }
-//
-//        if (customerRepository.existsByMeterNumber(customer.getMeterNumber())) {
-//            response.put("success", false);
-//            response.put("message", "Meter number already exists!");
-//            return response;
-//        }
-//
-//        Customer savedCustomer = customerRepository.save(customer);
-//        response.put("success", true);
-//        response.put("message", "Customer added successfully!");
-//        response.put("customer", savedCustomer);
-//
-//        return response;
-//    }
 
     public Map<String, Object> addCustomer(Customer customer) {
         Map<String, Object> response = new HashMap<>();
