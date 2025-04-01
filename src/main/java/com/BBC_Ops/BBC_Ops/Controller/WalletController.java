@@ -44,6 +44,7 @@ public class WalletController {
         if (success) {
             response.put("message", "Money added successfully!");
             return ResponseEntity.ok(response);
+
         } else {
             response.put("message", "Invalid payment method or customer not found.");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
