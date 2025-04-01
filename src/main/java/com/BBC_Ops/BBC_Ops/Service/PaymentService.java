@@ -127,7 +127,7 @@ public class PaymentService {
                     null, 0, null, 0, 0, 0, 0, null, null, null, null);
         }
 
-        // ✅ Now fetch the wallet using the customer ID from the bill
+        // ✅ Fetch wallet balance using customer ID
         Wallet wallet = walletRepository.findByCustomer_CustomerId(bill.getCustomer().getCustomerId());
 
         if (wallet == null) {
@@ -136,36 +136,40 @@ public class PaymentService {
         }
 
         // Payment processing logic
-        double amount = paymentRequest.getAmount();
+        double totalAmount = paymentRequest.getAmount();
         PaymentMethod method = paymentRequest.getPaymentMethod();
         boolean success = false;
 
-        // ✅ Check sufficient balance and deduct amount from wallet
+        // ✅ Calculate discount first
+        double discount = discountContext.calculateDiscount(bill, paymentRequest.getPaymentMethod());
+        double discountedAmount = totalAmount - discount;
+
+        // ✅ Check sufficient balance and deduct discounted amount from wallet
         switch (method) {
             case CREDIT_CARD:
-                if (wallet.getCreditCardBalance() >= amount) {
-                    wallet.setCreditCardBalance(wallet.getCreditCardBalance() - amount);
+                if (wallet.getCreditCardBalance() >= discountedAmount) {
+                    wallet.setCreditCardBalance(wallet.getCreditCardBalance() - discountedAmount);
                     success = true;
                 }
                 break;
 
             case DEBIT_CARD:
-                if (wallet.getDebitCardBalance() >= amount) {
-                    wallet.setDebitCardBalance(wallet.getDebitCardBalance() - amount);
+                if (wallet.getDebitCardBalance() >= discountedAmount) {
+                    wallet.setDebitCardBalance(wallet.getDebitCardBalance() - discountedAmount);
                     success = true;
                 }
                 break;
 
             case WALLET:
-                if (wallet.getWalletBalance() >= amount) {
-                    wallet.setWalletBalance(wallet.getWalletBalance() - amount);
+                if (wallet.getWalletBalance() >= discountedAmount) {
+                    wallet.setWalletBalance(wallet.getWalletBalance() - discountedAmount);
                     success = true;
                 }
                 break;
 
             case UPI:
-                if (wallet.getUpiBalance() >= amount) {
-                    wallet.setUpiBalance(wallet.getUpiBalance() - amount);
+                if (wallet.getUpiBalance() >= discountedAmount) {
+                    wallet.setUpiBalance(wallet.getUpiBalance() - discountedAmount);
                     success = true;
                 }
                 break;
@@ -181,31 +185,44 @@ public class PaymentService {
         // ✅ Save the updated wallet balance
         walletRepository.save(wallet);
 
-        // ✅ Calculate discount and final payment amount
-        double discount = bill.getDiscountApplied(); // Assuming discount is already applied on the bill
-        double finalAmountPaid = amount - discount;
+        // ✅ Calculate final payment amount (after discount)
+        double finalAmountPaid = discountedAmount;
 
-        // ✅ Create new payment record
+        // ✅ 1. Create a new transaction and insert into `transactions`
+        Transaction transaction = new Transaction();
+        transaction.setBill(bill);
+        transaction.setCustomer(bill.getCustomer());
+        transaction.setAmountPaid(totalAmount); // the total bill before discount
+        transaction.setDiscountApplied(discount);
+        transaction.setFinalAmountPaid(finalAmountPaid);
+        transaction.setPaymentMethod(method);
+        transaction.setPaymentDate(new Date());
+        transaction.setStatus(TransactionStatus.SUCCESS);
+
+        Transaction savedTransaction = transactionRepository.save(transaction); // ✅ Save transaction
+
+        // ✅ 2. Create a new payment record using transaction ID
         PaymentRecord paymentRecord = new PaymentRecord();
         paymentRecord.setInvoiceId(UUID.randomUUID().toString());
-        paymentRecord.setMeterNumber("MTR-" + bill.getBillId());
-        paymentRecord.setUnitConsumed(bill.getUnitConsumed()); // ✅ Set unitConsumed from bill
-        paymentRecord.setDueDate(bill.getDueDate()); // ✅ Set dueDate from bill
-        paymentRecord.setTotalBillAmount(amount);
-        paymentRecord.setAmountPaid(amount);
-        paymentRecord.setDiscountApplied(discount); // ✅ Set discount from bill
-        paymentRecord.setFinalAmountPaid(finalAmountPaid); // ✅ Calculate finalAmountPaid
-        paymentRecord.setBillingMonth(formatDateToString(bill.getMonthDate())); // ✅ Set billingMonth as String
+        paymentRecord.setMeterNumber(bill.getCustomer().getMeterNumber()); // ✅ Use actual meter number
+        paymentRecord.setUnitConsumed(bill.getUnitConsumed());
+        paymentRecord.setDueDate(bill.getDueDate());
+        paymentRecord.setTotalBillAmount(totalAmount);
+        paymentRecord.setAmountPaid(totalAmount);
+        paymentRecord.setDiscountApplied(discount);
+        paymentRecord.setFinalAmountPaid(finalAmountPaid);
+        paymentRecord.setBillingMonth(formatDateToString(bill.getMonthDate()));
         paymentRecord.setPaymentMethod(method);
         paymentRecord.setPaymentDate(new Date());
-        paymentRecord.setTransactionId(UUID.randomUUID().toString());
+        paymentRecord.setTransactionId(String.valueOf(savedTransaction.getTransactionId())); // ✅ Use actual transaction_id
+
         paymentRepository.save(paymentRecord);
 
-        // ✅ Update bill status to PAID
+        // ✅ 3. Update bill status to PAID
         bill.setPaymentStatus(PaymentStatus.PAID);
         billRepository.save(bill);
 
-        // ✅ Prepare response with all details
+        // ✅ Prepare response
         String transactionId = paymentRecord.getTransactionId();
         SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy");
         String billingMonth = bill.getMonthDate() != null ? sdf.format(bill.getMonthDate()) : "Unknown";
@@ -216,8 +233,8 @@ public class PaymentService {
                 paymentRecord.getMeterNumber(),
                 bill.getUnitConsumed(),
                 bill.getDueDate(),
-                amount,
-                amount,
+                totalAmount,
+                totalAmount,
                 discount,
                 finalAmountPaid,
                 method,
