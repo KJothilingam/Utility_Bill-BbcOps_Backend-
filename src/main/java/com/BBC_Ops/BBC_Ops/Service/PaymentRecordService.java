@@ -19,4 +19,9 @@ public class PaymentRecordService {
     public List<PaymentRecord> getAllPaymentRecords() {
         return paymentRecordRepository.findAll();
     }
+
+    // Fetch payment records by meter number
+    public List<PaymentRecord> getPaymentRecordsByMeterNumber(String meterNumber) {
+        return paymentRecordRepository.findByMeterNumber(meterNumber);
+    }
 }

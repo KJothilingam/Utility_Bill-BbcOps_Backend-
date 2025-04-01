@@ -1,6 +1,8 @@
 package com.BBC_Ops.BBC_Ops.Controller;
 
+import com.BBC_Ops.BBC_Ops.Model.Customer;
 import com.BBC_Ops.BBC_Ops.Model.PaymentRecord;
+import com.BBC_Ops.BBC_Ops.Service.CustomerService;
 import com.BBC_Ops.BBC_Ops.Service.PaymentRecordService;
 import com.BBC_Ops.BBC_Ops.Utils.PaymentResponse;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +21,12 @@ import java.util.Optional;
 public class PaymentRecordController {
 
     private final PaymentRecordService paymentRecordService;
+    private final CustomerService customerService; // Add CustomerService to fetch customer details
 
-    public PaymentRecordController(PaymentRecordService paymentRecordService) {
+    public PaymentRecordController(PaymentRecordService paymentRecordService, CustomerService customerService) {
         this.paymentRecordService = paymentRecordService;
+        this.customerService = customerService;
     }
-
 
     // ✅ Fetch all payment records
     @GetMapping
@@ -31,24 +34,19 @@ public class PaymentRecordController {
         List<PaymentRecord> records = paymentRecordService.getAllPaymentRecords();
         return ResponseEntity.ok(records);
     }
-//
-//    // ✅ Fetch a specific payment record by ID
-//    @GetMapping("/{id}")
-//    public ResponseEntity<PaymentRecord> getPaymentRecordById(@PathVariable Long id) {
-//        Optional<PaymentRecord> record = paymentRecordService.getPaymentRecordById(id);
-//        return record.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-//    }
-//
-//    // ✅ Delete a payment record by ID
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<String> deletePaymentRecord(@PathVariable Long id) {
-//        boolean deleted = paymentRecordService.deletePaymentRecord(id);
-//        if (deleted) {
-//            return ResponseEntity.ok("Payment record deleted successfully.");
-//        } else {
-//            return ResponseEntity.status(404).body("Payment record not found.");
-//        }
-//    }
 
+    // Fetch payment records by customer ID
+    @GetMapping("/customer")
+    public ResponseEntity<List<PaymentRecord>> getPaymentRecordsByCustomerId(@RequestParam("customerId") Long customerId) {
+        // Fetch the customer by ID
+        Optional<Customer> customer = customerService.getCustomerById(customerId);
 
+        if (!customer.isPresent()) {
+            return ResponseEntity.notFound().build(); // Return 404 if customer is not found
+        }
+
+        // Fetch payment records by meter number (from Customer entity)
+        List<PaymentRecord> records = paymentRecordService.getPaymentRecordsByMeterNumber(customer.get().getMeterNumber());
+        return ResponseEntity.ok(records);
+    }
 }

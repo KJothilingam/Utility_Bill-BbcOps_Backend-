@@ -182,4 +182,9 @@ public class CustomerService {
         return customerRepository.findByEmail(email);
     }
 
+    // Fetch customer by ID
+    public Optional<Customer> getCustomerById(Long customerId) {
+        return customerRepository.findById(customerId);
+    }
+
 }
