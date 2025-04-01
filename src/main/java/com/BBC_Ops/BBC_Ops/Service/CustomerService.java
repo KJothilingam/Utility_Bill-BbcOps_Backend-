@@ -2,7 +2,9 @@ package com.BBC_Ops.BBC_Ops.Service;
 
 import com.BBC_Ops.BBC_Ops.Model.ConnectionType;
 import com.BBC_Ops.BBC_Ops.Model.Customer;
+import com.BBC_Ops.BBC_Ops.Model.Wallet;
 import com.BBC_Ops.BBC_Ops.Repository.CustomerRepository;
+import com.BBC_Ops.BBC_Ops.Repository.WalletRepository;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +18,15 @@ import java.util.*;
 @Service
 public class CustomerService {
 
+    private final CustomerRepository customerRepository;
+    private final WalletRepository walletRepository;  // Add this line
+
     @Autowired
-    private CustomerRepository customerRepository;
+    public CustomerService(CustomerRepository customerRepository, WalletRepository walletRepository) {
+        this.customerRepository = customerRepository;
+        this.walletRepository = walletRepository;  // Inject the WalletRepository
+    }
+
 
     public List<Customer> getAllCustomers() {
         return customerRepository.findAll();
@@ -113,9 +122,19 @@ public class CustomerService {
         Optional<Customer> customerOpt = customerRepository.findById(customerId);
         if (customerOpt.isPresent()) {
             Customer customer = customerOpt.get();
+
+            // Fetch the Wallet linked to the Customer using the updated method
+            Optional<Wallet> walletOpt = walletRepository.findByCustomer(customer); // Updated query
+
+            if (walletOpt.isPresent()) {
+                // Delete the Wallet
+                walletRepository.delete(walletOpt.get());
+            }
+
+            // Now delete the Customer
             customerRepository.deleteById(customerId);
 
-            response.put("message", "Customer deleted successfully");
+            response.put("message", "Customer and associated wallet deleted successfully");
             response.put("customerId", customerId);
             response.put("customerName", customer.getName());
             response.put("status", true);
@@ -127,6 +146,28 @@ public class CustomerService {
 
         return response;
     }
+
+
+//    public Map<String, Object> deleteCustomer(Long customerId) {
+//        Map<String, Object> response = new HashMap<>();
+//
+//        Optional<Customer> customerOpt = customerRepository.findById(customerId);
+//        if (customerOpt.isPresent()) {
+//            Customer customer = customerOpt.get();
+//            customerRepository.deleteById(customerId);
+//
+//            response.put("message", "Customer deleted successfully");
+//            response.put("customerId", customerId);
+//            response.put("customerName", customer.getName());
+//            response.put("status", true);
+//        } else {
+//            response.put("message", "Customer not found");
+//            response.put("customerId", customerId);
+//            response.put("status", false);
+//        }
+//
+//        return response;
+//    }
 
     public Customer updateCustomer(Long id, Customer updatedCustomer) {
         Optional<Customer> existingCustomerOpt = customerRepository.findById(id);
@@ -149,34 +190,73 @@ public class CustomerService {
         return null;
     }
 
+//    public Map<String, Object> addCustomer(Customer customer) {
+//        Map<String, Object> response = new HashMap<>();
+//
+//        if (customerRepository.existsByEmail(customer.getEmail())) {
+//            response.put("success", false);
+//            response.put("message", "Email already exists!");
+//            return response;
+//        }
+//
+//        if (customerRepository.existsByPhoneNumber(customer.getPhoneNumber())) {
+//            response.put("success", false);
+//            response.put("message", "Phone number already exists!");
+//            return response;
+//        }
+//
+//        if (customerRepository.existsByMeterNumber(customer.getMeterNumber())) {
+//            response.put("success", false);
+//            response.put("message", "Meter number already exists!");
+//            return response;
+//        }
+//
+//        Customer savedCustomer = customerRepository.save(customer);
+//        response.put("success", true);
+//        response.put("message", "Customer added successfully!");
+//        response.put("customer", savedCustomer);
+//
+//        return response;
+//    }
+
     public Map<String, Object> addCustomer(Customer customer) {
         Map<String, Object> response = new HashMap<>();
 
+        // Check if the email already exists
         if (customerRepository.existsByEmail(customer.getEmail())) {
             response.put("success", false);
             response.put("message", "Email already exists!");
             return response;
         }
 
+        // Check if the phone number already exists
         if (customerRepository.existsByPhoneNumber(customer.getPhoneNumber())) {
             response.put("success", false);
             response.put("message", "Phone number already exists!");
             return response;
         }
 
+        // Check if the meter number already exists
         if (customerRepository.existsByMeterNumber(customer.getMeterNumber())) {
             response.put("success", false);
             response.put("message", "Meter number already exists!");
             return response;
         }
 
+        // Save the new customer
         Customer savedCustomer = customerRepository.save(customer);
+
+        // Create a new wallet with zero balances for the new customer
+        Wallet newWallet = new Wallet(savedCustomer, 0.0, 0.0, 0.0, 0.0);
+        walletRepository.save(newWallet);  // Save the wallet into the wallet repository
+
         response.put("success", true);
         response.put("message", "Customer added successfully!");
         response.put("customer", savedCustomer);
 
         return response;
     }
+
 
     public Customer findByEmail(String email) {
         return customerRepository.findByEmail(email);
