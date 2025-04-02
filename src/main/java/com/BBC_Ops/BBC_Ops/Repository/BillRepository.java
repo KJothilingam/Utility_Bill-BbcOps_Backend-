@@ -51,4 +51,7 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     @Query("SELECT COUNT(b) FROM Bill b WHERE b.paymentStatus = 'PENDING' OR b.dueDate < CURRENT_DATE")
     long countPendingAndOverdueBills();
 
+    @Query("SELECT b FROM Bill b WHERE b.paymentStatus = 'OVERDUE' ORDER BY b.dueDate ASC")
+    List<Bill> findOverdueBills();
+
 }

@@ -101,4 +101,10 @@ public class BillController {
         return billService.getBillsByCustomerId(customerId);
     }
 
+    @GetMapping("/overdue")
+    public ResponseEntity<List<Bill>> getOverdueBills() {
+        List<Bill> overdueBills = billService.getOverdueBills();
+        return ResponseEntity.ok(overdueBills);
+    }
+
 }

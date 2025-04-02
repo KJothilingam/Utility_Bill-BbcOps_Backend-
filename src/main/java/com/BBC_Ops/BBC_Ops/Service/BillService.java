@@ -152,5 +152,8 @@ public class BillService {
     public List<Bill> getBillsByCustomerId(Long customerId) {
         return billRepository.findByCustomer_CustomerId(customerId);
     }
+    public List<Bill> getOverdueBills() {
+        return billRepository.findOverdueBills();
+    }
 
 }
