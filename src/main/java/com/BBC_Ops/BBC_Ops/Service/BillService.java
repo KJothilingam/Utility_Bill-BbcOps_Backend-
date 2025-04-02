@@ -1,4 +1,6 @@
 package com.BBC_Ops.BBC_Ops.Service;
+import com.BBC_Ops.BBC_Ops.Utils.MonthlyPaymentDTO;
+import com.BBC_Ops.BBC_Ops.Utils.PaymentSummaryDTO;
 import org.springframework.data.domain.Pageable;
 
 import com.BBC_Ops.BBC_Ops.Enum.PaymentStatus;
@@ -154,6 +156,21 @@ public class BillService {
     }
     public List<Bill> getOverdueBills() {
         return billRepository.findOverdueBills();
+    }
+
+    public PaymentSummaryDTO getPaymentSummary() {
+        long pending = billRepository.countPendingPayments();
+        long paid = billRepository.countPaidPayments();
+        long overdue = billRepository.countOverduePayments();
+        return new PaymentSummaryDTO(pending, paid, overdue);
+    }
+
+    public MonthlyPaymentDTO getMonthlyPayments() {
+        List<Object[]> results = billRepository.getMonthlyPayments();
+        List<String> months = results.stream().map(r -> (String) r[0]).collect(Collectors.toList());
+        List<Double> amounts = results.stream().map(r -> (Double) r[1]).collect(Collectors.toList());
+
+        return new MonthlyPaymentDTO(months, amounts);
     }
 
 }

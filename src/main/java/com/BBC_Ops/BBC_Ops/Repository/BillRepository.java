@@ -54,4 +54,21 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     @Query("SELECT b FROM Bill b WHERE b.paymentStatus = 'OVERDUE' ORDER BY b.dueDate ASC")
     List<Bill> findOverdueBills();
 
+
+
+    @Query("SELECT COUNT(b) FROM Bill b WHERE b.paymentStatus = 'PENDING'")
+    long countPendingPayments();
+
+    @Query("SELECT COUNT(b) FROM Bill b WHERE b.paymentStatus = 'PAID'")
+    long countPaidPayments();
+
+    @Query("SELECT COUNT(b) FROM Bill b WHERE b.paymentStatus = 'OVERDUE'")
+    long countOverduePayments();
+
+    @Query("SELECT FUNCTION('DATE_FORMAT', b.monthDate, '%b') AS month, SUM(b.totalBillAmount) " +
+            "FROM Bill b " +
+            "GROUP BY FUNCTION('DATE_FORMAT', b.monthDate, '%b') " +
+            "ORDER BY MIN(b.monthDate)")
+    List<Object[]> getMonthlyPayments();
+
 }

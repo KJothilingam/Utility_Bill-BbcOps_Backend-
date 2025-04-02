@@ -3,6 +3,8 @@ package com.BBC_Ops.BBC_Ops.Controller;
 import com.BBC_Ops.BBC_Ops.Model.Bill;
 import com.BBC_Ops.BBC_Ops.Service.BillService;
 import com.BBC_Ops.BBC_Ops.Utils.BillResponse;
+import com.BBC_Ops.BBC_Ops.Utils.MonthlyPaymentDTO;
+import com.BBC_Ops.BBC_Ops.Utils.PaymentSummaryDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -105,6 +107,16 @@ public class BillController {
     public ResponseEntity<List<Bill>> getOverdueBills() {
         List<Bill> overdueBills = billService.getOverdueBills();
         return ResponseEntity.ok(overdueBills);
+    }
+
+    @GetMapping("/summary")
+    public PaymentSummaryDTO getPaymentSummary() {
+        return billService.getPaymentSummary();
+    }
+
+    @GetMapping("/monthly-payments")
+    public MonthlyPaymentDTO getMonthlyPayments() {
+        return billService.getMonthlyPayments();
     }
 
 }
