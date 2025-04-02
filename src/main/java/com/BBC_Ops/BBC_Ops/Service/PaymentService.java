@@ -7,10 +7,7 @@ import com.BBC_Ops.BBC_Ops.Model.Bill;
 import com.BBC_Ops.BBC_Ops.Model.PaymentRecord;
 import com.BBC_Ops.BBC_Ops.Model.Transaction;
 import com.BBC_Ops.BBC_Ops.Model.Wallet;
-import com.BBC_Ops.BBC_Ops.Repository.BillRepository;
-import com.BBC_Ops.BBC_Ops.Repository.PaymentRepository;
-import com.BBC_Ops.BBC_Ops.Repository.TransactionRepository;
-import com.BBC_Ops.BBC_Ops.Repository.WalletRepository;
+import com.BBC_Ops.BBC_Ops.Repository.*;
 import com.BBC_Ops.BBC_Ops.Utils.PaymentRequest;
 import com.BBC_Ops.BBC_Ops.Utils.PaymentResponse;
 import jakarta.transaction.Transactional;
@@ -18,9 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class PaymentService {
@@ -248,5 +243,22 @@ public class PaymentService {
     private String formatDateToString(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // Or any other format you prefer
         return sdf.format(date);
+    }
+
+
+    @Autowired
+    private PaymentRecordRepository paymentRecordRepository;
+
+    public Map<String, Object> getWeeklyPayments() {
+        List<Object[]> results = paymentRecordRepository.getWeeklyPayments();
+        Map<String, Object> response = new HashMap<>();
+
+        List<Integer> weeks = results.stream().map(r -> (Integer) r[0]).toList();
+        List<Double> amounts = results.stream().map(r -> (Double) r[1]).toList();
+
+        response.put("weeks", weeks);
+        response.put("amounts", amounts);
+
+        return response;
     }
 }

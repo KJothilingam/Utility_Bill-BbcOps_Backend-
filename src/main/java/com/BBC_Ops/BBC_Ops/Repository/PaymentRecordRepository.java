@@ -18,4 +18,11 @@ public interface PaymentRecordRepository extends JpaRepository<PaymentRecord, Lo
     @Query("SELECT p FROM PaymentRecord p ORDER BY p.paymentDate DESC")
     Page<PaymentRecord> findLatestPayments(Pageable pageable);
 
+    @Query("SELECT WEEK(p.paymentDate) AS weekNumber, SUM(p.totalBillAmount) AS totalAmount " +
+            "FROM PaymentRecord p " +
+            "WHERE YEAR(p.paymentDate) = YEAR(CURRENT_DATE) " +
+            "GROUP BY WEEK(p.paymentDate) " +
+            "ORDER BY weekNumber")
+    List<Object[]> getWeeklyPayments();
+
 }
