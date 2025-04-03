@@ -159,6 +159,7 @@ public class CustomerController {
 
     @Autowired
     private CustomerRepository customerRepository;
+
     // ✅ Fetch customer by ID
     @GetMapping("/{id}")
     public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
