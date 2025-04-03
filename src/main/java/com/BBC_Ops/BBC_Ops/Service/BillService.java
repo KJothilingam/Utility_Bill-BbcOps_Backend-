@@ -181,4 +181,25 @@ public class BillService {
         Optional<Bill> billOptional = billRepository.findByInvoiceId(invoiceId);
         return billOptional.orElse(null);
     }
+
+    public Map<String, List<Integer>> getMonthlyStats(Long customerId) {
+        List<Object[]> results = billRepository.getMonthlyStatsByCustomer(customerId);
+
+        List<Integer> payments = new ArrayList<>();
+        List<Integer> units = new ArrayList<>();
+        List<Integer> months = new ArrayList<>();
+
+        for (Object[] result : results) {
+            months.add(((Number) result[0]).intValue());
+            payments.add(((Number) result[1]).intValue());
+            units.add(((Number) result[2]).intValue());
+        }
+
+        Map<String, List<Integer>> stats = new HashMap<>();
+        stats.put("months", months);
+        stats.put("payments", payments);
+        stats.put("units", units);
+
+        return stats;
+    }
 }

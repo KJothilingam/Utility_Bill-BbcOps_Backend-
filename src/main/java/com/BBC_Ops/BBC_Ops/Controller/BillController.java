@@ -128,4 +128,9 @@ public class BillController {
 
         return ResponseEntity.ok(bill);
     }
+
+    @GetMapping("/monthly-stats/{customerId}")
+    public ResponseEntity<Map<String, List<Integer>>> getMonthlyStats(@PathVariable Long customerId) {
+        return ResponseEntity.ok(billService.getMonthlyStats(customerId));
+    }
 }

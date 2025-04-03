@@ -3,6 +3,7 @@ package com.BBC_Ops.BBC_Ops.Controller;
 import com.BBC_Ops.BBC_Ops.Model.ApiResponse;
 import com.BBC_Ops.BBC_Ops.Model.Customer;
 import com.BBC_Ops.BBC_Ops.Model.Employee;
+import com.BBC_Ops.BBC_Ops.Repository.CustomerRepository;
 import com.BBC_Ops.BBC_Ops.Service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -152,6 +153,18 @@ public class CustomerController {
         }
 
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
+    }
+
+
+
+    @Autowired
+    private CustomerRepository customerRepository;
+    // ✅ Fetch customer by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
+        Optional<Customer> customer = customerRepository.findById(id);
+        return customer.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 

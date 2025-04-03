@@ -74,4 +74,8 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
             "ORDER BY MIN(b.monthDate)")
     List<Object[]> getMonthlyPayments();
 
+
+    @Query("SELECT MONTH(b.monthDate) as month, SUM(b.totalBillAmount) as totalPayment, SUM(b.unitConsumed) as totalUnits FROM Bill b WHERE b.customer.customerId = :customerId GROUP BY MONTH(b.monthDate) ORDER BY MONTH(b.monthDate)")
+    List<Object[]> getMonthlyStatsByCustomer(Long customerId);
+
 }
