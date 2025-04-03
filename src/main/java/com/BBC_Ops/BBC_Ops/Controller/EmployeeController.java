@@ -59,14 +59,15 @@ public class EmployeeController {
             return ResponseEntity.ok(Map.of(
                     "message", "OTP verified successfully",
                     "userId", employee.getEmployeeId(),
-                    "userName", employee.getName() // Assuming getName() returns full name
+                    "userName", employee.getName(),
+                    "designation", employee.getDesignation() // ✅ FIXED: Include designation
             ));
         }
 
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
     }
 
-    //
+
     @GetMapping
     public List<Employee> getAllEmployees() {
         return employeeService.getAllEmployees();
@@ -88,4 +89,47 @@ public class EmployeeController {
         employeeService.deleteEmployee(id);
         return ResponseEntity.noContent().build();
     }
+
+
+    @GetMapping("/data/{id}")
+    public ResponseEntity<?> getEmployeeDataById(@PathVariable Long id) {
+        Employee employee = employeeService.findById(id);
+        if (employee != null) {
+            return ResponseEntity.ok(Map.of(
+                    "employee_id", employee.getEmployeeId(),
+                    "name", employee.getName(),
+                    "dob", employee.getDob(),
+                    "email", employee.getEmail(),
+                    "phone_number", employee.getPhoneNumber(),
+                    "designation", employee.getDesignation()
+            ));
+        } else {
+            return ResponseEntity.status(404).body(Map.of("message", "Employee not found"));
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
+        Optional<Employee> optionalEmployee = employeeService.getEmployeeById(id);
+
+        if (!optionalEmployee.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Employee existingEmployee = optionalEmployee.get();  // Extract Employee from Optional
+
+        // Update only email and phone number
+        if (employee.getEmail() != null) {
+            existingEmployee.setEmail(employee.getEmail());
+        }
+        if (employee.getPhoneNumber() != null) {
+            existingEmployee.setPhoneNumber(employee.getPhoneNumber());
+        }
+
+        Employee updatedEmployee = employeeService.saveEmployee(existingEmployee);
+        return ResponseEntity.ok(updatedEmployee);
+    }
+
+
+
 }

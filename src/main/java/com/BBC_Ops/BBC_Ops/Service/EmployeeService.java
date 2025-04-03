@@ -33,4 +33,17 @@ public class EmployeeService {
     public void deleteEmployee(Long id) {
         employeeRepository.deleteById(id);
     }
+
+    public Employee findById(Long id) {
+        return employeeRepository.findById(id).orElse(null);
+    }
+
+//    public Optional<Employee> getEmployeeById(Long id) {
+//        return employeeRepository.findById(id);
+//    }
+
+    public Employee saveEmployee(Employee employee) {
+        return employeeRepository.save(employee);
+    }
+
 }
