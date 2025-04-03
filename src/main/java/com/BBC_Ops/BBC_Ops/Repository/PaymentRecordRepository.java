@@ -27,4 +27,8 @@ public interface PaymentRecordRepository extends JpaRepository<PaymentRecord, Lo
     List<Object[]> getWeeklyPayments();
     Optional<PaymentRecord> findByTransactionId(String transactionId);
 
+
+
+
+    List<PaymentRecord> findByMeterNumberOrderByPaymentDateDesc(String meterNumber, Pageable pageable);
 }

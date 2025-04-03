@@ -36,5 +36,8 @@ public class DashboardService {
         return paymentRecordRepository.findLatestPayments(PageRequest.of(0, 5)).getContent();
     }
 
+    public List<PaymentRecord> getLatestPaymentsByCustomer(String meterNumber) {
+        return paymentRecordRepository.findByMeterNumberOrderByPaymentDateDesc(meterNumber, PageRequest.of(0, 5));
+    }
 }
 
