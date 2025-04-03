@@ -144,8 +144,12 @@ public class BillService {
         return billRepository.findAll();
     }
 
+//    public List<Bill> getUnpaidBillsByMeterNumber(String meterNumber) {
+//        return billRepository.findByCustomer_MeterNumberAndPaymentStatus(meterNumber, PaymentStatus.PENDING);
+//    }
     public List<Bill> getUnpaidBillsByMeterNumber(String meterNumber) {
-        return billRepository.findByCustomer_MeterNumberAndPaymentStatus(meterNumber, PaymentStatus.PENDING);
+        return billRepository.findByCustomer_MeterNumberAndPaymentStatusIn(meterNumber,
+                Arrays.asList(PaymentStatus.PENDING, PaymentStatus.OVERDUE));
     }
     public List<Bill> getRecentPendingBills(int limit) {
         List<Bill> pendingBills = billRepository.findTopRecentPendingBills();
@@ -173,4 +177,8 @@ public class BillService {
         return new MonthlyPaymentDTO(months, amounts);
     }
 
+    public Bill getBillByInvoiceId(String invoiceId) {
+        Optional<Bill> billOptional = billRepository.findByInvoiceId(invoiceId);
+        return billOptional.orElse(null);
+    }
 }

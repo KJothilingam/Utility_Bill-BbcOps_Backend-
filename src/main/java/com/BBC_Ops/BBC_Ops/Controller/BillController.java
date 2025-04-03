@@ -119,4 +119,13 @@ public class BillController {
         return billService.getMonthlyPayments();
     }
 
+    @GetMapping("/{invoiceId}")
+    public ResponseEntity<?> getBillDetails(@PathVariable String invoiceId) {
+        Bill bill = billService.getBillByInvoiceId(invoiceId);
+        if (bill == null) {
+            return ResponseEntity.badRequest().body("Invoice Not Found");
+        }
+
+        return ResponseEntity.ok(bill);
+    }
 }

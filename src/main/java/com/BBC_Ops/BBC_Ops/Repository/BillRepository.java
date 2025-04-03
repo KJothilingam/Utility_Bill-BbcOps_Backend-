@@ -41,14 +41,17 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
 
     boolean existsByCustomerAndMonthDate(Customer customer, Date monthDate);
 
-    List<Bill> findByCustomer_MeterNumberAndPaymentStatus(String meterNumber, PaymentStatus paymentStatus);
+//    List<Bill> findByCustomer_MeterNumberAndPaymentStatus(String meterNumber, PaymentStatus paymentStatus);
+
+    // ✅ Fetch unpaid bills (both PENDING & OVERDUE)
+    List<Bill> findByCustomer_MeterNumberAndPaymentStatusIn(String meterNumber, List<PaymentStatus> statuses);
 
 
     @Query(value = "SELECT b FROM Bill b WHERE b.paymentStatus = 'PENDING' ORDER BY b.dueDate DESC")
     List<Bill> findTopRecentPendingBills();  // Fetch all pending bills, limit applied in service
 
 
-    @Query("SELECT COUNT(b) FROM Bill b WHERE b.paymentStatus = 'PENDING' OR b.dueDate < CURRENT_DATE")
+    @Query("SELECT COUNT(b) FROM Bill b WHERE b.paymentStatus = 'PENDING' OR b.paymentStatus = 'OVERDUE'")
     long countPendingAndOverdueBills();
 
     @Query("SELECT b FROM Bill b WHERE b.paymentStatus = 'OVERDUE' ORDER BY b.dueDate ASC")
