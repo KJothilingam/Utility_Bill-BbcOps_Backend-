@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PaymentRecordService {
@@ -23,5 +24,10 @@ public class PaymentRecordService {
     // Fetch payment records by meter number
     public List<PaymentRecord> getPaymentRecordsByMeterNumber(String meterNumber) {
         return paymentRecordRepository.findByMeterNumber(meterNumber);
+    }
+
+    // Fetch payment record by transaction ID
+    public Optional<PaymentRecord> getPaymentRecordByTransactionId(String transactionId) {
+        return paymentRecordRepository.findByTransactionId(transactionId);
     }
 }

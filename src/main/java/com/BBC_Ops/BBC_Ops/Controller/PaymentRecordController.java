@@ -43,4 +43,10 @@ public class PaymentRecordController {
         List<PaymentRecord> records = paymentRecordService.getPaymentRecordsByMeterNumber(customer.get().getMeterNumber());
         return ResponseEntity.ok(records);
     }
+
+    // Endpoint to get payment record by transaction ID
+    @GetMapping("/{transactionId}")
+    public Optional<PaymentRecord> getPaymentRecordByTransactionId(@PathVariable String transactionId) {
+        return paymentRecordService.getPaymentRecordByTransactionId(transactionId);
+    }
 }
