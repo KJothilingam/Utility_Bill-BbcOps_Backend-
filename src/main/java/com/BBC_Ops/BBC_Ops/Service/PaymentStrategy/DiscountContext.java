@@ -1,4 +1,4 @@
-package com.BBC_Ops.BBC_Ops.Service;
+package com.BBC_Ops.BBC_Ops.Service.PaymentStrategy;
 
 import com.BBC_Ops.BBC_Ops.Enum.PaymentMethod;
 import com.BBC_Ops.BBC_Ops.Model.Bill;

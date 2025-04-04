@@ -8,6 +8,7 @@ import com.BBC_Ops.BBC_Ops.Model.PaymentRecord;
 import com.BBC_Ops.BBC_Ops.Model.Transaction;
 import com.BBC_Ops.BBC_Ops.Model.Wallet;
 import com.BBC_Ops.BBC_Ops.Repository.*;
+import com.BBC_Ops.BBC_Ops.Service.PaymentStrategy.DiscountContext;
 import com.BBC_Ops.BBC_Ops.Utils.PaymentRequest;
 import com.BBC_Ops.BBC_Ops.Utils.PaymentResponse;
 import jakarta.transaction.Transactional;
@@ -166,7 +167,7 @@ public class PaymentService {
 
         // Payment processing logic
         double totalAmount = paymentRequest.getAmount();
-        PaymentMethod method = paymentRequest.getPaymentMethod();
+        PaymentMethod method  = paymentRequest.getPaymentMethod();
         boolean success = false;
 
         // ✅ Calculate discount first

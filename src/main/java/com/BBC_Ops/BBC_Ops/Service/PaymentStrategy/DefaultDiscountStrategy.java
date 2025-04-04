@@ -1,4 +1,4 @@
-package com.BBC_Ops.BBC_Ops.Service;
+package com.BBC_Ops.BBC_Ops.Service.PaymentStrategy;
 
 import com.BBC_Ops.BBC_Ops.Model.Bill;
 import com.BBC_Ops.BBC_Ops.Enum.PaymentMethod;
@@ -10,6 +10,7 @@ public class DefaultDiscountStrategy implements DiscountStrategy {
 
     @Override
     public double calculateDiscount(Bill bill, PaymentMethod paymentMethod) {
+
         double discount = 0;
 
         // 5% discount for early payment
