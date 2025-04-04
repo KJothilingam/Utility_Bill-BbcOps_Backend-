@@ -16,9 +16,6 @@ import java.util.Map;
 @RequestMapping("wallets")
 public class WalletController {
 
-    // Correct the logger initialization to use the actual class name
-    private static final Logger logger = LoggerFactory.getLogger(WalletController.class);
-
     @Autowired
     private WalletService walletService;
 

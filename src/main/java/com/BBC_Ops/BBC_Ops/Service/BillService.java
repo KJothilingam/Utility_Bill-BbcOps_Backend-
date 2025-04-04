@@ -1,25 +1,17 @@
 package com.BBC_Ops.BBC_Ops.Service;
 import com.BBC_Ops.BBC_Ops.Utils.MonthlyPaymentDTO;
 import com.BBC_Ops.BBC_Ops.Utils.PaymentSummaryDTO;
-import org.springframework.data.domain.Pageable;
-
 import com.BBC_Ops.BBC_Ops.Enum.PaymentStatus;
 import com.BBC_Ops.BBC_Ops.Exceptions.CustomerNotFoundException;
 import com.BBC_Ops.BBC_Ops.Model.Bill;
 import com.BBC_Ops.BBC_Ops.Model.Customer;
 import com.BBC_Ops.BBC_Ops.Repository.BillRepository;
 import com.BBC_Ops.BBC_Ops.Repository.CustomerRepository;
-import com.BBC_Ops.BBC_Ops.Service.BillingContext;
-import com.BBC_Ops.BBC_Ops.Service.DiscountedBillingStrategy;
-import com.BBC_Ops.BBC_Ops.Service.PeakHourBillingStrategy;
-import com.BBC_Ops.BBC_Ops.Service.StandardBillingStrategy;
 import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -145,9 +137,6 @@ public class BillService {
         return billRepository.findAll();
     }
 
-//    public List<Bill> getUnpaidBillsByMeterNumber(String meterNumber) {
-//        return billRepository.findByCustomer_MeterNumberAndPaymentStatus(meterNumber, PaymentStatus.PENDING);
-//    }
     public List<Bill> getUnpaidBillsByMeterNumber(String meterNumber) {
         return billRepository.findByCustomer_MeterNumberAndPaymentStatusIn(meterNumber,
                 Arrays.asList(PaymentStatus.PENDING, PaymentStatus.OVERDUE));

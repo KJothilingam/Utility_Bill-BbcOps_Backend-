@@ -19,12 +19,12 @@ import java.util.*;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-    private final WalletRepository walletRepository;  // Add this line
+    private final WalletRepository walletRepository;
 
     @Autowired
     public CustomerService(CustomerRepository customerRepository, WalletRepository walletRepository) {
         this.customerRepository = customerRepository;
-        this.walletRepository = walletRepository;  // Inject the WalletRepository
+        this.walletRepository = walletRepository;
     }
 
 

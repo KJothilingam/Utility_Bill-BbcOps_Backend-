@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -25,10 +24,8 @@ public interface PaymentRecordRepository extends JpaRepository<PaymentRecord, Lo
             "GROUP BY WEEK(p.paymentDate) " +
             "ORDER BY weekNumber")
     List<Object[]> getWeeklyPayments();
+
     Optional<PaymentRecord> findByTransactionId(String transactionId);
-
-
-
 
     List<PaymentRecord> findByMeterNumberOrderByPaymentDateDesc(String meterNumber, Pageable pageable);
 }

@@ -14,6 +14,7 @@ public class WalletService {
     public Wallet findByCustomerId(Long customerId) {
         return walletRepository.findByCustomer_CustomerId(customerId);
     }
+
     public boolean addMoneyToWallet(Long customerId, double amount, String paymentMethod) {
         Wallet wallet = walletRepository.findByCustomer_CustomerId(customerId);
 

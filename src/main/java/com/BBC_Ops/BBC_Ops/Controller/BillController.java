@@ -8,7 +8,6 @@ import com.BBC_Ops.BBC_Ops.Utils.PaymentSummaryDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,6 @@ public class BillController {
 
     @Autowired
     private BillService billService;
-
 
     @GetMapping("/all")
     public List<Bill> getAllBills() {
@@ -48,37 +46,30 @@ public class BillController {
         private String meterNumber;
         private int unitConsumed;
         private Date monthDate;
-
         // Getters and Setters
         public String getMeterNumber() {
             return meterNumber;
         }
-
         public void setMeterNumber(String meterNumber) {
             this.meterNumber = meterNumber;
         }
-
         public int getUnitConsumed() {
             return unitConsumed;
         }
-
         public void setUnitConsumed(int unitConsumed) {
             this.unitConsumed = unitConsumed;
         }
-
         public Date getMonthDate() {
             return monthDate;
         }
-
         public void setMonthDate(Date monthDate) {
             this.monthDate = monthDate;
         }
     }
 
 
-        /** ✅ API to manually trigger overdue check */
-        @PutMapping("/update-overdue")
-        public ResponseEntity<Map<String, String>> updateOverdueBills() {
+    @PutMapping("/update-overdue")
+    public ResponseEntity<Map<String, String>> updateOverdueBills() {
             billService.updateOverdueBills();
             return ResponseEntity.ok(Map.of("message", "Overdue bills updated successfully."));
         }

@@ -2,7 +2,6 @@ package com.BBC_Ops.BBC_Ops.Controller;
 
 import com.BBC_Ops.BBC_Ops.Model.ApiResponse;
 import com.BBC_Ops.BBC_Ops.Model.Customer;
-import com.BBC_Ops.BBC_Ops.Model.Employee;
 import com.BBC_Ops.BBC_Ops.Repository.CustomerRepository;
 import com.BBC_Ops.BBC_Ops.Service.CustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.util.*;
 
 @RestController
@@ -19,6 +17,11 @@ public class CustomerController {
 
     @Autowired
     private CustomerService customerService;
+
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
 
     @GetMapping("/list")
     public ResponseEntity<List<Customer>> getAllCustomers() {
@@ -31,7 +34,6 @@ public class CustomerController {
         if (file == null || file.isEmpty()) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, "File is empty", 0, 0));
         }
-
         try {
             Map<String, Object> response = customerService.processCsv(file);
             boolean success = (boolean) response.getOrDefault("success", false);
@@ -96,6 +98,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(response);
     }
+
     private Map<String, String> otpStorage = new HashMap<>();
 
     @PostMapping("/add")
@@ -103,30 +106,25 @@ public class CustomerController {
         Map<String, Object> response = customerService.addCustomer(customer);
 
         if ((boolean) response.get("success")) {
-            return ResponseEntity.ok(response); // Return success response
+            return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response); // Return error response
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }
+
     @PostMapping("/generate-otp")
     public ResponseEntity<?> generateOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-
-        // Check if email exists in DB
         Customer customer = customerService.findByEmail(email);
         if (customer == null) {
             return ResponseEntity.badRequest().body(Map.of("message", "Email not registered"));
         }
-
         // Generate 6-digit OTP
         String otp = String.format("%06d", new Random().nextInt(999999));
-
         // Store OTP temporarily (for demo purposes, use Redis in production)
         otpStorage.put(email, otp);
-
         // ✅ Print OTP in server logs
         System.out.println("Generated OTP for " + email + ": " + otp);
-
         return ResponseEntity.ok(Map.of("message", "OTP sent successfully", "otp", otp));
     }
 
@@ -134,31 +132,22 @@ public class CustomerController {
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String enteredOtp = request.get("otp");
-
         // Validate OTP
         if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
             otpStorage.remove(email); // Clear OTP after successful verification
-
             // Fetch customer details
             Customer customer = customerService.findByEmail(email);
             if (customer == null) {
                 return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
             }
-
             return ResponseEntity.ok(Map.of(
                     "message", "OTP verified successfully",
                     "customerId", customer.getCustomerId(),
                     "customerName", customer.getName() // Assuming getName() returns full name
             ));
         }
-
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
     }
-
-
-
-    @Autowired
-    private CustomerRepository customerRepository;
 
     // ✅ Fetch customer by ID
     @GetMapping("/{id}")
@@ -167,8 +156,5 @@ public class CustomerController {
         return customer.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
-
-
-
 
 }

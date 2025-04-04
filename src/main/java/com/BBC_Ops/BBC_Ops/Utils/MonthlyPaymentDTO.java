@@ -13,5 +13,6 @@ public class MonthlyPaymentDTO {
     }
 
     public List<String> getMonths() { return months; }
+
     public List<Double> getAmounts() { return amounts; }
 }

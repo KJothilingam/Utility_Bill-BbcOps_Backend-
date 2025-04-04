@@ -13,7 +13,6 @@ import com.BBC_Ops.BBC_Ops.Utils.PaymentResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -29,106 +28,15 @@ public class PaymentService {
     @Autowired
     private DiscountContext discountContext;
 
-//    @Transactional
-//    public PaymentResponse processPayment(PaymentRequest request) {
-//        Bill bill = billRepository.findById(request.getBillId()).orElse(null);
-//        if (bill == null) {
-//            return new PaymentResponse(false, "Bill not found for ID: " + request.getBillId(), null, null, 0, null, 0, 0, 0, 0, null, null, null, null);
-//        }
-//
-//        if (bill.getPaymentStatus() == PaymentStatus.PAID) {
-//            return new PaymentResponse(false, "Bill is already paid", null, null, 0, null, 0, 0, 0, 0, null, null, null, null);
-//        }
-//
-//        PaymentMethod method = request.getPaymentMethod();
-//        boolean success = false;
-//        double discount = discountContext.calculateDiscount(bill, method);
-//        double discountedAmount = request.getAmount() - discount;
-//
-//        if (method == PaymentMethod.CASH) {
-//            success = true;
-//            bill.setPaymentStatus(PaymentStatus.PAID);
-//            billRepository.save(bill);
-//        } else {
-//            Wallet wallet = walletRepository.findByCustomer_CustomerId(bill.getCustomer().getCustomerId());
-//            if (wallet == null) {
-//                return new PaymentResponse(false, "Wallet not found for customer ID: " + bill.getCustomer().getCustomerId(), null, null, 0, null, 0, 0, 0, 0, null, null, null, null);
-//            }
-//
-//            switch (method) {
-//                case CREDIT_CARD:
-//                    if (wallet.getCreditCardBalance() >= discountedAmount) {
-//                        wallet.setCreditCardBalance(wallet.getCreditCardBalance() - discountedAmount);
-//                        success = true;
-//                    }
-//                    break;
-//                case DEBIT_CARD:
-//                    if (wallet.getDebitCardBalance() >= discountedAmount) {
-//                        wallet.setDebitCardBalance(wallet.getDebitCardBalance() - discountedAmount);
-//                        success = true;
-//                    }
-//                    break;
-//                case WALLET:
-//                    if (wallet.getWalletBalance() >= discountedAmount) {
-//                        wallet.setWalletBalance(wallet.getWalletBalance() - discountedAmount);
-//                        success = true;
-//                    }
-//                    break;
-//                case UPI:
-//                    if (wallet.getUpiBalance() >= discountedAmount) {
-//                        wallet.setUpiBalance(wallet.getUpiBalance() - discountedAmount);
-//                        success = true;
-//                    }
-//                    break;
-//                default:
-//                    return new PaymentResponse(false, "Invalid payment method", null, null, 0, null, 0, 0, 0, 0, null, null, null, null);
-//            }
-//
-//            if (!success) {
-//                return new PaymentResponse(false, "Insufficient balance in " + method + " account!", null, null, 0, null, 0, 0, 0, 0, null, null, null, null);
-//            }
-//
-//            walletRepository.save(wallet);
-//        }
-//
-//        Transaction transaction = new Transaction();
-//        transaction.setBill(bill);
-//        transaction.setCustomer(bill.getCustomer());
-//        transaction.setAmountPaid(discountedAmount);
-//        transaction.setDiscountApplied(discount);
-//        transaction.setFinalAmountPaid(discountedAmount);
-//        transaction.setPaymentMethod(method);
-//        transaction.setPaymentDate(new Date());
-//        transaction.setStatus(TransactionStatus.SUCCESS);
-//
-//        Transaction savedTransaction = null;
-//        try {
-//            savedTransaction = transactionRepository.save(transaction);
-//            bill.setPaymentStatus(PaymentStatus.PAID);
-//            billRepository.save(bill);
-//        } catch (Exception e) {
-//            return new PaymentResponse(false, "Transaction failed! " + e.getMessage(), null, null, 0, null, 0, 0, 0, 0, null, null, null, null);
-//        }
-//
-//        SimpleDateFormat sdf = new SimpleDateFormat("MMMM yyyy");
-//        String billingMonth = bill.getMonthDate() != null ? sdf.format(bill.getMonthDate()) : "Unknown";
-//
-//        return new PaymentResponse(
-//                true, "Payment successful!",
-//                bill.getInvoiceId(),
-//                bill.getCustomer().getMeterNumber(),
-//                bill.getUnitConsumed(),
-//                bill.getDueDate(),
-//                bill.getTotalBillAmount(),
-//                request.getAmount(),
-//                discount,
-//                discountedAmount,
-//                method,
-//                new Date(),
-//                billingMonth,
-//                String.valueOf(savedTransaction.getTransactionId())
-//        );
-//    }
+    @Autowired
+    private WalletRepository walletRepository;
+
+    @Autowired
+    private PaymentRepository paymentRepository;
+
+
+    @Autowired
+    private PaymentRecordRepository paymentRecordRepository;
 
     @Transactional
     public PaymentResponse processPayment(PaymentRequest request) {
@@ -231,11 +139,6 @@ public class PaymentService {
         );
     }
 
-
-    @Autowired
-    private WalletRepository walletRepository;
-    @Autowired
-    private PaymentRepository paymentRepository;
 
     @Transactional
     public PaymentResponse processPaymentbyCustomer(PaymentRequest paymentRequest) {
@@ -376,13 +279,9 @@ public class PaymentService {
 
     // Helper method to format Date to String
     private String formatDateToString(Date date) {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); // Or any other format you prefer
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         return sdf.format(date);
     }
-
-
-    @Autowired
-    private PaymentRecordRepository paymentRecordRepository;
 
     public Map<String, Object> getWeeklyPayments() {
         List<Object[]> results = paymentRecordRepository.getWeeklyPayments();
