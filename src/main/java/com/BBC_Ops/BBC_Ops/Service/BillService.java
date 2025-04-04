@@ -78,11 +78,12 @@ public class BillService {
         }
         Customer customer = optionalCustomer.get();
 
-        // ✅ Check if a bill already exists for this customer and month
-        boolean billExists = billRepository.existsByCustomerAndMonthDate(customer, monthDate);
+
+        boolean billExists = billRepository.existsByCustomerAndMonth(customer, monthDate);
         if (billExists) {
-            throw new IllegalStateException("Bill already generated for this month: " + monthDate);
+            throw new IllegalStateException("Bill already generated for this month and meter number.");
         }
+
 
         // ✅ Select billing strategy
         if (isPeakHours()) {

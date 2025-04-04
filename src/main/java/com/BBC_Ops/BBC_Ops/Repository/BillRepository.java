@@ -78,4 +78,8 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
     @Query("SELECT MONTH(b.monthDate) as month, SUM(b.totalBillAmount) as totalPayment, SUM(b.unitConsumed) as totalUnits FROM Bill b WHERE b.customer.customerId = :customerId GROUP BY MONTH(b.monthDate) ORDER BY MONTH(b.monthDate)")
     List<Object[]> getMonthlyStatsByCustomer(Long customerId);
 
+    @Query("SELECT COUNT(b) > 0 FROM Bill b WHERE b.customer = :customer AND FUNCTION('YEAR', b.monthDate) = FUNCTION('YEAR', :monthDate) AND FUNCTION('MONTH', b.monthDate) = FUNCTION('MONTH', :monthDate)")
+    boolean existsByCustomerAndMonth(@Param("customer") Customer customer, @Param("monthDate") Date monthDate);
+
+
 }
