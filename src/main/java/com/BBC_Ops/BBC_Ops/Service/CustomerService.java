@@ -7,6 +7,8 @@ import com.BBC_Ops.BBC_Ops.Repository.CustomerRepository;
 import com.BBC_Ops.BBC_Ops.Repository.WalletRepository;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +20,8 @@ import java.util.*;
 @Service
 public class CustomerService {
 
+    private static final Logger logger = LoggerFactory.getLogger(CustomerService.class);
+
     private final CustomerRepository customerRepository;
     private final WalletRepository walletRepository;
 
@@ -27,18 +31,17 @@ public class CustomerService {
         this.walletRepository = walletRepository;
     }
 
-
     public List<Customer> getAllCustomers() {
+        logger.info("Fetching all customers");
         return customerRepository.findAll();
     }
 
-
     public Map<String, Object> processCsv(MultipartFile file) {
+        logger.info("Processing uploaded CSV file...");
         Map<String, Object> response = new HashMap<>();
         List<String> errors = new ArrayList<>();
         List<Customer> validCustomers = new ArrayList<>();
         List<Wallet> walletsToSave = new ArrayList<>();
-
         int validCount = 0;
         int rejectedCount = 0;
 
@@ -47,6 +50,7 @@ public class CustomerService {
 
             String[] headers = csvReader.readNext();
             if (!isValidHeader(headers)) {
+                logger.warn("Invalid CSV headers");
                 errors.add("Invalid CSV headers. Expected: name, email, phoneNumber, address, unitConsumption, billDueDate, meterNumber, connectionType");
                 response.put("success", false);
                 response.put("validRecords", 0);
@@ -71,38 +75,35 @@ public class CustomerService {
                     customer.setMeterNumber(record[6]);
                     customer.setConnectionType(ConnectionType.valueOf(record[7].toUpperCase()));
 
-                    // Check for duplicate records
                     if (customerRepository.existsByEmail(customer.getEmail()) ||
                             customerRepository.existsByPhoneNumber(customer.getPhoneNumber()) ||
                             customerRepository.existsByMeterNumber(customer.getMeterNumber())) {
+                        logger.warn("Duplicate found at row {}: {}", rowNum, customer.getEmail());
                         errors.add("Duplicate record at row " + rowNum + ": " + customer.getEmail());
                         rejectedCount++;
                     } else {
-                        // Save customer and create wallet for each valid customer
                         validCustomers.add(customer);
                         validCount++;
 
-                        // Create a new wallet for the customer with all balances initialized to zero
                         Wallet wallet = new Wallet();
-                        wallet.setCustomer(customer); // Link the wallet to the customer
+                        wallet.setCustomer(customer);
                         wallet.setCreditCardBalance(0);
                         wallet.setDebitCardBalance(0);
                         wallet.setWalletBalance(0);
                         wallet.setUpiBalance(0);
-
-                        walletsToSave.add(wallet); // Add the wallet to be saved after all customers are processed
+                        walletsToSave.add(wallet);
                     }
 
                 } catch (Exception e) {
+                    logger.error("Error processing row {}: {}", rowNum, e.getMessage());
                     errors.add("Skipping invalid row " + rowNum + ": " + String.join(",", record));
                     rejectedCount++;
                 }
             }
 
-            // Save valid customers and their wallets
             if (!validCustomers.isEmpty()) {
                 customerRepository.saveAll(validCustomers);
-                walletRepository.saveAll(walletsToSave); // Save all wallets after customers are saved
+                walletRepository.saveAll(walletsToSave);
             }
 
             response.put("success", errors.isEmpty());
@@ -110,7 +111,10 @@ public class CustomerService {
             response.put("rejectedRecords", rejectedCount);
             response.put("errors", errors);
 
+            logger.info("CSV processing completed. Valid: {}, Rejected: {}", validCount, rejectedCount);
+
         } catch (IOException | CsvValidationException e) {
+            logger.error("CSV file processing failed: {}", e.getMessage());
             response.put("success", false);
             response.put("validRecords", validCount);
             response.put("rejectedRecords", rejectedCount);
@@ -119,7 +123,6 @@ public class CustomerService {
 
         return response;
     }
-
 
     private boolean isValidHeader(String[] headers) {
         return headers != null && headers.length == 8 &&
@@ -134,28 +137,25 @@ public class CustomerService {
     }
 
     public Map<String, Object> deleteCustomer(Long customerId) {
+        logger.info("Attempting to delete customer with ID {}", customerId);
         Map<String, Object> response = new HashMap<>();
-
         Optional<Customer> customerOpt = customerRepository.findById(customerId);
+
         if (customerOpt.isPresent()) {
             Customer customer = customerOpt.get();
+            Optional<Wallet> walletOpt = walletRepository.findByCustomer(customer);
 
-            // Fetch the Wallet linked to the Customer using the updated method
-            Optional<Wallet> walletOpt = walletRepository.findByCustomer(customer); // Updated query
-
-            if (walletOpt.isPresent()) {
-                // Delete the Wallet
-                walletRepository.delete(walletOpt.get());
-            }
-
-            // Now delete the Customer
+            walletOpt.ifPresent(walletRepository::delete);
             customerRepository.deleteById(customerId);
+
+            logger.info("Customer and wallet deleted successfully: {}", customer.getEmail());
 
             response.put("message", "Customer and associated wallet deleted successfully");
             response.put("customerId", customerId);
             response.put("customerName", customer.getName());
             response.put("status", true);
         } else {
+            logger.warn("Customer not found with ID: {}", customerId);
             response.put("message", "Customer not found");
             response.put("customerId", customerId);
             response.put("status", false);
@@ -164,13 +164,11 @@ public class CustomerService {
         return response;
     }
 
-
     public Customer updateCustomer(Long id, Customer updatedCustomer) {
+        logger.info("Updating customer with ID: {}", id);
         Optional<Customer> existingCustomerOpt = customerRepository.findById(id);
         if (existingCustomerOpt.isPresent()) {
             Customer existingCustomer = existingCustomerOpt.get();
-
-            // Updating fields
             existingCustomer.setName(updatedCustomer.getName());
             existingCustomer.setEmail(updatedCustomer.getEmail());
             existingCustomer.setPhoneNumber(updatedCustomer.getPhoneNumber());
@@ -180,43 +178,44 @@ public class CustomerService {
             existingCustomer.setMeterNumber(updatedCustomer.getMeterNumber());
             existingCustomer.setConnectionType(updatedCustomer.getConnectionType());
 
-            // Save and return the updated customer
+            logger.info("Customer updated successfully: {}", existingCustomer.getEmail());
             return customerRepository.save(existingCustomer);
+        } else {
+            logger.warn("Customer not found for update with ID: {}", id);
         }
         return null;
     }
 
     public Map<String, Object> addCustomer(Customer customer) {
+        logger.info("Adding new customer: {}", customer.getEmail());
         Map<String, Object> response = new HashMap<>();
 
-        // Check if the email already exists
         if (customerRepository.existsByEmail(customer.getEmail())) {
+            logger.warn("Duplicate email found: {}", customer.getEmail());
             response.put("success", false);
             response.put("message", "Email already exists!");
             return response;
         }
 
-        // Check if the phone number already exists
         if (customerRepository.existsByPhoneNumber(customer.getPhoneNumber())) {
+            logger.warn("Duplicate phone number found: {}", customer.getPhoneNumber());
             response.put("success", false);
             response.put("message", "Phone number already exists!");
             return response;
         }
 
-        // Check if the meter number already exists
         if (customerRepository.existsByMeterNumber(customer.getMeterNumber())) {
+            logger.warn("Duplicate meter number found: {}", customer.getMeterNumber());
             response.put("success", false);
             response.put("message", "Meter number already exists!");
             return response;
         }
 
-        // Save the new customer
         Customer savedCustomer = customerRepository.save(customer);
-
-        // Create a new wallet with zero balances for the new customer
         Wallet newWallet = new Wallet(savedCustomer, 0.0, 0.0, 0.0, 0.0);
-        walletRepository.save(newWallet);  // Save the wallet into the wallet repository
+        walletRepository.save(newWallet);
 
+        logger.info("Customer added successfully: {}", savedCustomer.getEmail());
         response.put("success", true);
         response.put("message", "Customer added successfully!");
         response.put("customer", savedCustomer);
@@ -224,14 +223,13 @@ public class CustomerService {
         return response;
     }
 
-
     public Customer findByEmail(String email) {
+        logger.info("Fetching customer by email: {}", email);
         return customerRepository.findByEmail(email);
     }
 
-    // Fetch customer by ID
     public Optional<Customer> getCustomerById(Long customerId) {
+        logger.info("Fetching customer by ID: {}", customerId);
         return customerRepository.findById(customerId);
     }
-
 }
