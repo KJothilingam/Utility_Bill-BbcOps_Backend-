@@ -10,19 +10,20 @@ public class DefaultDiscountStrategy implements DiscountStrategy {
 
     @Override
     public double calculateDiscount(Bill bill, PaymentMethod paymentMethod) {
-
         double discount = 0;
+        boolean isBeforeDue = bill.getDueDate().after(new Date());
 
-        // 5% discount for early payment
-        if (bill.getDueDate().after(new Date())) {
+        // 5% for early payment
+        if (isBeforeDue) {
             discount += 0.05 * bill.getTotalBillAmount();
-        }
 
-        // 5% discount for online payment methods
-        if (paymentMethod != PaymentMethod.CASH) {
-            discount += 0.05 * bill.getTotalBillAmount();
+            // Additional 5% for online payment before due date
+            if (paymentMethod != PaymentMethod.CASH) {
+                discount += 0.05 * bill.getTotalBillAmount();
+            }
         }
 
         return discount;
     }
+
 }
