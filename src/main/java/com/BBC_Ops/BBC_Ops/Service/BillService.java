@@ -1,4 +1,8 @@
 package com.BBC_Ops.BBC_Ops.Service;
+import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.BillingContext;
+import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.DiscountedBillingStrategy;
+import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.PeakHourBillingStrategy;
+import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.StandardBillingStrategy;
 import com.BBC_Ops.BBC_Ops.Utils.MonthlyPaymentDTO;
 import com.BBC_Ops.BBC_Ops.Utils.PaymentSummaryDTO;
 import com.BBC_Ops.BBC_Ops.Enum.PaymentStatus;
@@ -70,12 +74,10 @@ public class BillService {
         }
         Customer customer = optionalCustomer.get();
 
-
         boolean billExists = billRepository.existsByCustomerAndMonth(customer, monthDate);
         if (billExists) {
             throw new IllegalStateException("Bill already generated for this month and meter number.");
         }
-
 
         // ✅ Select billing strategy
         if (isPeakHours()) {
@@ -122,14 +124,16 @@ public class BillService {
         return savedBill;
     }
 
+
     private boolean isPeakHours() {
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        return hour >= 18 && hour < 22; // Peak hours: 6PM - 10PM
+        return hour >= 9 && hour < 12; // Peak hours: 9AM - 12PM
     }
 
+
     private boolean isEligibleForDiscount(Customer customer) {
-        return customer.getEmail().endsWith("@example.com"); // Example: Apply discount for specific customers
+        return customer.getEmail().endsWith("@example.com");
     }
 
 

@@ -1,4 +1,4 @@
-package com.BBC_Ops.BBC_Ops.Service;
+package com.BBC_Ops.BBC_Ops.Service.BillingStrategy;
 
 import com.BBC_Ops.BBC_Ops.Model.BillingStrategy;
 import org.springframework.stereotype.Service;
@@ -12,4 +12,5 @@ public class StandardBillingStrategy implements BillingStrategy {
     public double calculateBill(int unitConsumption) {
         return unitConsumption * STANDARD_RATE;
     }
+
 }
