@@ -130,7 +130,6 @@ public class BillController {
         return ResponseEntity.ok(billService.updateBill(id, bill));
     }
 
-    // Fetch by Bill ID
     @GetMapping("/id/{id}")
     public ResponseEntity<?> getBill(@PathVariable Long id)
     {
