@@ -124,4 +124,18 @@ public class BillController {
     public ResponseEntity<Map<String, List<Integer>>> getMonthlyStats(@PathVariable Long customerId) {
         return ResponseEntity.ok(billService.getMonthlyStats(customerId));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Bill> updateBill(@PathVariable Long id, @RequestBody Bill bill) {
+        return ResponseEntity.ok(billService.updateBill(id, bill));
+    }
+
+    // Fetch by Bill ID
+    @GetMapping("/id/{id}")
+    public ResponseEntity<?> getBill(@PathVariable Long id)
+    {
+        return ResponseEntity.ok(billService.getBillById(id));
+    }
+
+
 }

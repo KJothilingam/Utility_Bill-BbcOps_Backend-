@@ -1,5 +1,6 @@
 package com.BBC_Ops.BBC_Ops.Service;
 
+import com.BBC_Ops.BBC_Ops.Exceptions.ResourceNotFoundException;
 import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.BillingContext;
 import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.DiscountedBillingStrategy;
 import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.PeakHourBillingStrategy;
@@ -199,5 +200,42 @@ public class BillService {
         stats.put("payments", payments);
         stats.put("units", units);
         return stats;
+    }
+
+    public Bill updateBill(Long id, Bill updatedBill) {
+        logger.info("Updating bill with ID: {}", id);
+
+        Bill existing = billRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Bill not found"));
+
+        if (updatedBill.getCustomer() != null) {
+            // Validate customer exists in DB
+            Long customerId = updatedBill.getCustomer().getCustomerId();
+            Customer customer = customerRepository.findById(customerId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Customer not found"));
+            existing.setCustomer(customer);
+        }
+
+        existing.setInvoiceId(updatedBill.getInvoiceId());
+        existing.setMonthDate(updatedBill.getMonthDate());
+        existing.setPaymentStatus(updatedBill.getPaymentStatus());
+        existing.setTotalBillAmount(updatedBill.getTotalBillAmount());
+        existing.setDiscountApplied(updatedBill.getDiscountApplied());
+        existing.setDueDate(updatedBill.getDueDate());
+        existing.setUnitConsumed(updatedBill.getUnitConsumed());
+
+        Bill savedBill = billRepository.save(existing);
+        logger.info("Successfully updated bill with ID: {}", savedBill.getBillId());
+
+        return savedBill;
+    }
+
+    public Bill getBillById(Long id) {
+        logger.info("Fetching bill with ID: {}", id);
+        return billRepository.findById(id)
+                .orElseThrow(() -> {
+                    logger.error("Bill with ID {} not found", id);
+                    return new ResourceNotFoundException("Bill not found");
+                });
     }
 }
