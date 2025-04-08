@@ -1,7 +1,6 @@
 package com.BBC_Ops.BBC_Ops.Model;
 import java.time.LocalDate;
 
-import com.BBC_Ops.BBC_Ops.Model.ConnectionType;
 import jakarta.persistence.*;
 
 @Entity
@@ -28,7 +27,7 @@ public class Customer {
     private int unitConsumption;
 
     @Column(nullable = false)
-    private LocalDate billDueDate;  // ✅ Now using LocalDate
+    private LocalDate billDueDate;  //  Now using LocalDate
 
     @Column(nullable = false, unique = true)
     private String meterNumber;

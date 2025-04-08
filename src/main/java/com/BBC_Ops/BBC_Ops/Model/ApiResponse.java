@@ -7,7 +7,7 @@ public class ApiResponse {
     private String message;
     private int validRecords;
     private int rejectedRecords;
-    private List<String> errors; // List of validation errors
+    private List<String> errors;
 
     // Constructor for success response without errors
     public ApiResponse(boolean success, String message, int validRecords, int rejectedRecords) {

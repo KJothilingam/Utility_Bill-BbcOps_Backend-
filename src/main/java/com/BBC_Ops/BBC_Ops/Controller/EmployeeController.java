@@ -115,7 +115,7 @@ public class EmployeeController {
             return ResponseEntity.notFound().build();
         }
 
-        Employee existingEmployee = optionalEmployee.get();  // Extract Employee from Optional
+        Employee existingEmployee = optionalEmployee.get();
 
         // Update only email and phone number
         if (employee.getEmail() != null) {

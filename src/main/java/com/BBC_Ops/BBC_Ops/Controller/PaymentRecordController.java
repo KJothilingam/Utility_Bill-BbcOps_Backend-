@@ -21,7 +21,7 @@ public class PaymentRecordController {
         this.customerService = customerService;
     }
 
-    // ✅ Fetch all payment records
+    //  Fetch all payment records
     @GetMapping
     public ResponseEntity<List<PaymentRecord>> getAllPaymentRecords() {
         List<PaymentRecord> records = paymentRecordService.getAllPaymentRecords();
@@ -35,7 +35,7 @@ public class PaymentRecordController {
         Optional<Customer> customer = customerService.getCustomerById(customerId);
 
         if (!customer.isPresent()) {
-            return ResponseEntity.notFound().build(); // Return 404 if customer is not found
+            return ResponseEntity.notFound().build();
         }
 
         // Fetch payment records by meter number (from Customer entity)

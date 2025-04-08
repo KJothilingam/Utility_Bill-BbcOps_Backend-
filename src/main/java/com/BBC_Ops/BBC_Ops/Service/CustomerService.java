@@ -147,9 +147,7 @@ public class CustomerService {
 
             walletOpt.ifPresent(walletRepository::delete);
             customerRepository.deleteById(customerId);
-
             logger.info("Customer and wallet deleted successfully: {}", customer.getEmail());
-
             response.put("message", "Customer and associated wallet deleted successfully");
             response.put("customerId", customerId);
             response.put("customerName", customer.getName());

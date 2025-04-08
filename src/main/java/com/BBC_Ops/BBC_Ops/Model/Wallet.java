@@ -24,7 +24,7 @@ public class Wallet {
     private double walletBalance;
 
     @Column(nullable = false)
-    private double upiBalance;  // ✅ Added UPI Balance
+    private double upiBalance;
 
     // Constructors
     public Wallet() {}

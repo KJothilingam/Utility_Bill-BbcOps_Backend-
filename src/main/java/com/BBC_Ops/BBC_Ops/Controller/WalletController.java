@@ -1,7 +1,5 @@
 package com.BBC_Ops.BBC_Ops.Controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.BBC_Ops.BBC_Ops.Model.Wallet;
 import com.BBC_Ops.BBC_Ops.Service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;

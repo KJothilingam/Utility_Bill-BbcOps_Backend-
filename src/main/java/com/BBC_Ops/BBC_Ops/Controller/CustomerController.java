@@ -44,13 +44,13 @@ public class CustomerController {
             ApiResponse apiResponse = new ApiResponse(success, "File processed", validRecords, rejectedRecords, errors);
 
             if (validRecords > 0 && rejectedRecords > 0) {
-                // ✅ Partial success (Return 200 instead of 400)
+                //  Partial success (Return 200 instead of 400)
                 return ResponseEntity.ok(apiResponse);
             } else if (success) {
-                // ✅ Full success
+                //  Full success
                 return ResponseEntity.ok(apiResponse);
             } else {
-                // ❌ Complete failure (return 400)
+                //  Complete failure (return 400)
                 return ResponseEntity.badRequest().body(apiResponse);
             }
 
@@ -123,7 +123,7 @@ public class CustomerController {
         String otp = String.format("%06d", new Random().nextInt(999999));
         // Store OTP temporarily (for demo purposes, use Redis in production)
         otpStorage.put(email, otp);
-        // ✅ Print OTP in server logs
+        //  Print OTP in server logs
         System.out.println("Generated OTP for " + email + ": " + otp);
         return ResponseEntity.ok(Map.of("message", "OTP sent successfully", "otp", otp));
     }
@@ -149,7 +149,7 @@ public class CustomerController {
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
     }
 
-    // ✅ Fetch customer by ID
+    //  Fetch customer by ID
     @GetMapping("/{id}")
     public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
         Optional<Customer> customer = customerRepository.findById(id);

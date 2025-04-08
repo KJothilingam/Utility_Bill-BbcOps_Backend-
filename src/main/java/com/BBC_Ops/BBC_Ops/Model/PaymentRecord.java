@@ -24,7 +24,7 @@ public class PaymentRecord {
     private String billingMonth;
     private String transactionId;
 
-    // ✅ Getters & Setters
+    //  Getters & Setters
 
     public Long getId() {
         return id;
@@ -148,5 +148,4 @@ public class PaymentRecord {
                 ", transactionId='" + transactionId + '\'' +
                 '}';
     }
-// 🔥 Include all fields
 }

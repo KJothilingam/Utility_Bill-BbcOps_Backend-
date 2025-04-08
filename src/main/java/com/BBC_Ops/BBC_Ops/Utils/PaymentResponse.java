@@ -19,7 +19,7 @@ public class PaymentResponse {
     private String billingMonth;
     private String transactionId;
 
-    // ✅ Constructor with all fields
+    //  Constructor with all fields
     public PaymentResponse(boolean success, String message, String invoiceId, String meterNumber, double unitConsumed,
                            Date dueDate, double totalBillAmount, double amountPaid, double discountApplied,
                            double finalAmountPaid, PaymentMethod paymentMethod, Date paymentDate,
@@ -40,7 +40,7 @@ public class PaymentResponse {
         this.transactionId = transactionId;
     }
 
-    // ✅ Getters & Setters (Ensure all fields have them)
+    //  Getters & Setters (Ensure all fields have them)
     public boolean isSuccess() { return success; }
     public void setSuccess(boolean success) { this.success = success; }
 

@@ -47,7 +47,7 @@ public class Bill {
     @JsonIgnore
     private Transaction transaction;
 
-    @Column(nullable = false) // ✅ Add unitConsumed field
+    @Column(nullable = false) //  Add unitConsumed field
     private int unitConsumed;
 
 
@@ -57,7 +57,7 @@ public class Bill {
         calendar.add(Calendar.DAY_OF_MONTH, 10);
         this.dueDate = calendar.getTime();
     }
-    // ✅ Add getter and setter for unitConsumed
+    //  Add getter and setter for unitConsumed
     public int getUnitConsumed() {
         return unitConsumed;
     }
@@ -78,7 +78,7 @@ public class Bill {
                 ", discountApplied=" + discountApplied +
                 ", createdAt=" + createdAt +
                 ", dueDate=" + dueDate +
-                ", unitConsumed=" + unitConsumed +  // ✅ Include in toString()
+                ", unitConsumed=" + unitConsumed +
                 ", transaction=" + transaction +
                 '}';
     }
