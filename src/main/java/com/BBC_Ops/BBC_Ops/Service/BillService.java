@@ -1,6 +1,7 @@
 package com.BBC_Ops.BBC_Ops.Service;
 
 import com.BBC_Ops.BBC_Ops.Exceptions.ResourceNotFoundException;
+import com.BBC_Ops.BBC_Ops.Model.ConnectionType;
 import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.BillingContext;
 import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.DiscountedBillingStrategy;
 import com.BBC_Ops.BBC_Ops.Service.BillingStrategy.PeakHourBillingStrategy;
@@ -82,6 +83,9 @@ public class BillService {
             throw new IllegalStateException("Bill already generated for this month and meter number.");
         }
 
+        // Get the connection type for billing strategy
+        ConnectionType connectionType = customer.getConnectionType();
+
         if (isPeakHours()) {
             billingContext.setBillingStrategy(peakHourBillingStrategy);
             logger.info("Using PeakHourBillingStrategy.");
@@ -93,7 +97,8 @@ public class BillService {
             logger.info("Using StandardBillingStrategy.");
         }
 
-        double totalBillAmount = billingContext.generateBill(unitConsumed);
+        // 🟢 Pass connectionType here
+        double totalBillAmount = billingContext.generateBill(unitConsumed, connectionType);
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(monthDate);
@@ -120,6 +125,67 @@ public class BillService {
 
         return savedBill;
     }
+
+//    public Bill generateBill(String meterNumber, int unitConsumed, Date monthDate) {
+//        logger.info("Generating bill for meterNumber={}, unitConsumed={}, monthDate={}",
+//                meterNumber, unitConsumed, monthDate);
+//
+//        if (unitConsumed <= 0) {
+//            logger.warn("Invalid unit consumption: {}", unitConsumed);
+//            throw new IllegalArgumentException("Invalid Unit Consumed: " + unitConsumed);
+//        }
+//
+//        Optional<Customer> optionalCustomer = customerRepository.findByMeterNumber(meterNumber);
+//        if (optionalCustomer.isEmpty()) {
+//            logger.error("Customer not found for meter number: {}", meterNumber);
+//            throw new CustomerNotFoundException("Invalid meter number: " + meterNumber);
+//        }
+//
+//        Customer customer = optionalCustomer.get();
+//
+//        if (billRepository.existsByCustomerAndMonth(customer, monthDate)) {
+//            logger.warn("Bill already exists for customer={} and month={}", customer.getCustomerId(), monthDate);
+//            throw new IllegalStateException("Bill already generated for this month and meter number.");
+//        }
+//
+//        if (isPeakHours()) {
+//            billingContext.setBillingStrategy(peakHourBillingStrategy);
+//            logger.info("Using PeakHourBillingStrategy.");
+//        } else if (isEligibleForDiscount(customer)) {
+//            billingContext.setBillingStrategy(discountedBillingStrategy);
+//            logger.info("Using DiscountedBillingStrategy for customer={}", customer.getCustomerId());
+//        } else {
+//            billingContext.setBillingStrategy(standardBillingStrategy);
+//            logger.info("Using StandardBillingStrategy.");
+//        }
+//
+//        double totalBillAmount = billingContext.generateBill(unitConsumed);
+//
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.setTime(monthDate);
+//        calendar.add(Calendar.DAY_OF_MONTH, 10);
+//        Date dueDate = calendar.getTime();
+//
+//        Bill bill = new Bill();
+//        bill.setCustomer(customer);
+//        bill.setInvoiceId(UUID.randomUUID().toString());
+//        bill.setMonthDate(monthDate);
+//        bill.setTotalBillAmount(totalBillAmount);
+//        bill.setPaymentStatus(PaymentStatus.PENDING);
+//        bill.setCreatedAt(new Date());
+//        bill.setDueDate(dueDate);
+//        bill.setUnitConsumed(unitConsumed);
+//
+//        Bill savedBill = billRepository.save(bill);
+//
+//        customer.setUnitConsumption(0);
+//        customerRepository.save(customer);
+//
+//        logger.info("✅ Bill Generated: invoiceId={}, customerId={}, amount={}, dueDate={}",
+//                bill.getInvoiceId(), customer.getCustomerId(), totalBillAmount, dueDate);
+//
+//        return savedBill;
+//    }
 
     private boolean isPeakHours() {
         int hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
