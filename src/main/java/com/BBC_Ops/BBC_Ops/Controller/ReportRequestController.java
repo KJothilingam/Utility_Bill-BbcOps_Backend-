@@ -16,14 +16,11 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("report")
+
 public class ReportRequestController {
 
     @Autowired
     private ReportRequestService service;
-
-    public ReportRequestController(ReportRequestService service) {
-        this.service = service;
-    }
 
     @PostMapping
     public ReportRequest submitRequest(@RequestBody ReportRequest request) {
