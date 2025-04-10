@@ -2,6 +2,8 @@ package com.BBC_Ops.BBC_Ops.Controller;
 
 
 import com.BBC_Ops.BBC_Ops.Model.Employee;
+import com.BBC_Ops.BBC_Ops.Repository.EmployeeRepository;
+import com.BBC_Ops.BBC_Ops.Service.AuditService;
 import com.BBC_Ops.BBC_Ops.Service.EmployeeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,11 @@ public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
 
+    @Autowired
+    private AuditService auditService;
+
+    @Autowired
+    private EmployeeRepository employeeRepository;
 
     private Map<String, String> otpStorage = new HashMap<>();
 
@@ -55,16 +62,31 @@ public class EmployeeController {
                 return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
             }
 
+            // 🔥 Audit login action here
+            auditService.logAction(employee, "Logged In via OTP");
+
             return ResponseEntity.ok(Map.of(
                     "message", "OTP verified successfully",
                     "userId", employee.getEmployeeId(),
                     "userName", employee.getName(),
-                    "designation", employee.getDesignation() // ✅ FIXED: Include designation
+                    "designation", employee.getDesignation()
             ));
         }
 
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestBody Map<String, String> request) {
+        String email = request.get("email");
+        Employee employee = employeeService.findByEmail(email);
+        if (employee == null) {
+            throw new RuntimeException("User not found");
+        }
+        auditService.logAction(employee, "Logged Out");
+        return ResponseEntity.ok(Map.of("message", "Logout successful"));
+    }
+
 
 
     @GetMapping
