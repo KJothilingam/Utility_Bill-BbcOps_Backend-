@@ -51,7 +51,7 @@ public class CustomerService {
             String[] headers = csvReader.readNext();
             if (!isValidHeader(headers)) {
                 logger.warn("Invalid CSV headers");
-                errors.add("Invalid CSV headers. Expected: name, email, phoneNumber, address, unitConsumption, billDueDate, meterNumber, connectionType");
+                errors.add("Invalid CSV headers. Expected: name, email, phoneNumber, address, unitConsumption, meterNumber, connectionType");
                 response.put("success", false);
                 response.put("validRecords", 0);
                 response.put("rejectedRecords", 0);
@@ -71,8 +71,8 @@ public class CustomerService {
                     customer.setPhoneNumber(record[2]);
                     customer.setAddress(record[3]);
                     customer.setUnitConsumption(Integer.parseInt(record[4]));
-                    customer.setMeterNumber(record[6]);
-                    customer.setConnectionType(ConnectionType.valueOf(record[7].toUpperCase()));
+                    customer.setMeterNumber(record[5]);
+                    customer.setConnectionType(ConnectionType.valueOf(record[6].toUpperCase()));
 
                     if (customerRepository.existsByEmail(customer.getEmail()) ||
                             customerRepository.existsByPhoneNumber(customer.getPhoneNumber()) ||
@@ -124,15 +124,14 @@ public class CustomerService {
     }
 
     private boolean isValidHeader(String[] headers) {
-        return headers != null && headers.length == 8 &&
+        return headers != null && headers.length == 7 &&
                 headers[0].equalsIgnoreCase("name") &&
                 headers[1].equalsIgnoreCase("email") &&
                 headers[2].equalsIgnoreCase("phoneNumber") &&
                 headers[3].equalsIgnoreCase("address") &&
                 headers[4].equalsIgnoreCase("unitConsumption") &&
-                headers[5].equalsIgnoreCase("billDueDate") &&
-                headers[6].equalsIgnoreCase("meterNumber") &&
-                headers[7].equalsIgnoreCase("connectionType");
+                headers[5].equalsIgnoreCase("meterNumber") &&
+                headers[6].equalsIgnoreCase("connectionType");
     }
 
     public Map<String, Object> deleteCustomer(Long customerId) {
@@ -171,7 +170,6 @@ public class CustomerService {
             existingCustomer.setPhoneNumber(updatedCustomer.getPhoneNumber());
             existingCustomer.setAddress(updatedCustomer.getAddress());
             existingCustomer.setUnitConsumption(updatedCustomer.getUnitConsumption());
-//            existingCustomer.setBillDueDate(updatedCustomer.getBillDueDate());
             existingCustomer.setMeterNumber(updatedCustomer.getMeterNumber());
             existingCustomer.setConnectionType(updatedCustomer.getConnectionType());
 
