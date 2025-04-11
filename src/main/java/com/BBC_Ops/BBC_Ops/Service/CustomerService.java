@@ -71,7 +71,6 @@ public class CustomerService {
                     customer.setPhoneNumber(record[2]);
                     customer.setAddress(record[3]);
                     customer.setUnitConsumption(Integer.parseInt(record[4]));
-                    customer.setBillDueDate(LocalDate.parse(record[5]));
                     customer.setMeterNumber(record[6]);
                     customer.setConnectionType(ConnectionType.valueOf(record[7].toUpperCase()));
 
@@ -172,7 +171,7 @@ public class CustomerService {
             existingCustomer.setPhoneNumber(updatedCustomer.getPhoneNumber());
             existingCustomer.setAddress(updatedCustomer.getAddress());
             existingCustomer.setUnitConsumption(updatedCustomer.getUnitConsumption());
-            existingCustomer.setBillDueDate(updatedCustomer.getBillDueDate());
+//            existingCustomer.setBillDueDate(updatedCustomer.getBillDueDate());
             existingCustomer.setMeterNumber(updatedCustomer.getMeterNumber());
             existingCustomer.setConnectionType(updatedCustomer.getConnectionType());
 

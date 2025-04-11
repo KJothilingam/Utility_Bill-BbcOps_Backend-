@@ -87,7 +87,7 @@ public class CustomerController {
                     "phoneNumber", savedCustomer.getPhoneNumber(),
                     "address", savedCustomer.getAddress(),
                     "unitConsumption", savedCustomer.getUnitConsumption(),
-                    "billDueDate", savedCustomer.getBillDueDate().toString(),
+//                    "billDueDate", savedCustomer.getBillDueDate().toString(),
                     "meterNumber", savedCustomer.getMeterNumber(),
                     "connectionType", savedCustomer.getConnectionType()
             ));

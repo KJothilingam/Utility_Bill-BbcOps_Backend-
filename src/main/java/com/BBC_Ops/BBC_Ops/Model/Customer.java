@@ -26,8 +26,6 @@ public class Customer {
     @Column(nullable = false)
     private int unitConsumption;
 
-    @Column(nullable = false)
-    private LocalDate billDueDate;  //  Now using LocalDate
 
     @Column(nullable = false, unique = true)
     private String meterNumber;
@@ -56,7 +54,7 @@ public class Customer {
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", address='" + address + '\'' +
                 ", unitConsumption=" + unitConsumption +
-                ", billDueDate=" + billDueDate +
+//                ", billDueDate=" + billDueDate +
                 ", meterNumber='" + meterNumber + '\'' +
                 ", connectionType=" + connectionType +
                 ", createdAt=" + createdAt +
@@ -111,13 +109,6 @@ public class Customer {
         this.unitConsumption = unitConsumption;
     }
 
-    public LocalDate getBillDueDate() {
-        return billDueDate;
-    }
-
-    public void setBillDueDate(LocalDate billDueDate) {
-        this.billDueDate = billDueDate;
-    }
 
     public String getMeterNumber() {
         return meterNumber;
