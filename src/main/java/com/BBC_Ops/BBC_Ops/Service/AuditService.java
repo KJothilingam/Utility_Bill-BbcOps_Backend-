@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class AuditService {
@@ -23,5 +24,9 @@ public class AuditService {
         log.setTimestamp(new Date());
 
         auditLogRepository.save(log);
+    }
+
+    public List<EmployeeAuditLog> getAllLogs() {
+        return auditLogRepository.findAll();
     }
 }
