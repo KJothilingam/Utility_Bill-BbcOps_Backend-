@@ -37,6 +37,7 @@ public class BillController {
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().body(new BillResponse(false, e.getMessage(), null));
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(new BillResponse(false, "Error generating bill", null));
         }
     }

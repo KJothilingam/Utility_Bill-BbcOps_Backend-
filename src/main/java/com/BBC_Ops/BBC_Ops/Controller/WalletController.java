@@ -1,6 +1,7 @@
 package com.BBC_Ops.BBC_Ops.Controller;
 
 import com.BBC_Ops.BBC_Ops.Model.Wallet;
+import com.BBC_Ops.BBC_Ops.Repository.BillingModifierRepository;
 import com.BBC_Ops.BBC_Ops.Service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -74,5 +75,16 @@ public class WalletController {
         public void setPaymentMethod(String paymentMethod) {
             this.paymentMethod = paymentMethod;
         }
+    }
+
+
+    @Autowired
+    private BillingModifierRepository modifierRepo;
+
+    @GetMapping("/passkey")
+    public ResponseEntity<Double> getPasskey() {
+        return modifierRepo.findByModifierName("PASSKEY")
+                .map(modifier -> ResponseEntity.ok(modifier.getValue()))
+                .orElse(ResponseEntity.notFound().build());
     }
 }

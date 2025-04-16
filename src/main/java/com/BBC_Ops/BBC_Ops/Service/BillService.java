@@ -61,6 +61,10 @@ public class BillService {
     public Bill generateBill(String meterNumber, int unitConsumed, Date monthDate) {
         logger.info("Generating bill for meterNumber={}, unitConsumed={}, monthDate={}",
                 meterNumber, unitConsumed, monthDate);
+//        System.out.println("Inside generateBill Service");
+//        System.out.println("Meter Number: " + meterNumber);
+//        System.out.println("Unit Consumed: " + unitConsumed);
+//        System.out.println("Month Date: " + monthDate);
 
         if (unitConsumed <= 0) {
             logger.warn("Invalid unit consumption: {}", unitConsumed);
