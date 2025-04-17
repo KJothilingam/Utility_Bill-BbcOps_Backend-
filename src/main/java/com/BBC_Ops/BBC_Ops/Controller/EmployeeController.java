@@ -1,10 +1,15 @@
 package com.BBC_Ops.BBC_Ops.Controller;
 
 
+import com.BBC_Ops.BBC_Ops.Model.ActiveToken;
 import com.BBC_Ops.BBC_Ops.Model.Employee;
+import com.BBC_Ops.BBC_Ops.Repository.ActiveTokenRepository;
 import com.BBC_Ops.BBC_Ops.Repository.EmployeeRepository;
 import com.BBC_Ops.BBC_Ops.Service.AuditService;
 import com.BBC_Ops.BBC_Ops.Service.EmployeeService;
+import com.BBC_Ops.BBC_Ops.configuration.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +18,7 @@ import java.util.*;
 @RestController
 @RequestMapping("employees")
 public class EmployeeController {
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeController.class);
 
     @Autowired
     private EmployeeService employeeService;
@@ -22,72 +28,144 @@ public class EmployeeController {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     private Map<String, String> otpStorage = new HashMap<>();
 
     @PostMapping("/generate-otp")
     public ResponseEntity<?> generateOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
+        logger.info("OTP generation requested for email: {}", email);
 
-        // Check if email exists in DB
         Employee employee = employeeService.findByEmail(email);
         if (employee == null) {
+            logger.warn("OTP generation failed - email not registered: {}", email);
             return ResponseEntity.badRequest().body(Map.of("message", "Email not registered"));
         }
 
-        // Generate 6-digit OTP
         String otp = String.format("%06d", new Random().nextInt(999999));
-
-        // Store OTP temporarily (for demo purposes, use Redis in production)
         otpStorage.put(email, otp);
 
-        // ✅ Print OTP in server logs
-        System.out.println("Generated OTP for " + email + ": " + otp);
-
+        logger.info("Generated OTP for {}: {}", email, otp); // Note: In production, avoid logging the OTP
         return ResponseEntity.ok(Map.of("message", "OTP sent successfully", "otp", otp));
     }
+
+    @Autowired
+    private ActiveTokenRepository activeTokenRepository;
 
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String enteredOtp = request.get("otp");
 
-        // Validate OTP
-        if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
-            otpStorage.remove(email); // Clear OTP after successful verification
+        logger.info("OTP verification requested for email: {}", email);
 
-            // Fetch employee details
+        if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
+            otpStorage.remove(email);
             Employee employee = employeeService.findByEmail(email);
+
             if (employee == null) {
+                logger.warn("OTP verification failed - employee not found for email: {}", email);
                 return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
             }
 
-            // 🔥 Audit login action here
+            String token = jwtUtil.generateToken(employee);
+
+            ActiveToken activeToken = new ActiveToken();
+            activeToken.setEmail(email);
+            activeToken.setToken(token);
+            activeTokenRepository.save(activeToken);
+
             auditService.logAction(employee, "Logged In via OTP");
+            logger.info("OTP verified successfully for {}. Token generated and login recorded.", email);
 
             return ResponseEntity.ok(Map.of(
-                    "message", "OTP verified successfully",
+                    "token", token,
                     "userId", employee.getEmployeeId(),
                     "userName", employee.getName(),
                     "designation", employee.getDesignation()
             ));
         }
 
+        logger.warn("Invalid OTP attempt for email: {}", email);
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
     }
 
+//    @PostMapping("/verify-otp")
+//    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
+//        String email = request.get("email");
+//        String enteredOtp = request.get("otp");
+//
+//        // Validate OTP
+//        if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
+//            otpStorage.remove(email); // Clear OTP after successful verification
+//
+//            // Fetch employee details
+//            Employee employee = employeeService.findByEmail(email);
+//            if (employee == null) {
+//                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
+//            }
+//
+//            // 🔥 Audit login action here
+//            auditService.logAction(employee, "Logged In via OTP");
+//
+//            return ResponseEntity.ok(Map.of(
+//                    "message", "OTP verified successfully",
+//                    "userId", employee.getEmployeeId(),
+//                    "userName", employee.getName(),
+//                    "designation", employee.getDesignation()
+//            ));
+//        }
+//
+//        return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
+//    }
+
+//    @PostMapping("/logout")
+//    public ResponseEntity<?> logout(@RequestBody Map<String, String> request) {
+//        String email = request.get("email");
+//        Employee employee = employeeService.findByEmail(email);
+//        if (employee == null) {
+//            throw new RuntimeException("User not found");
+//        }
+//        auditService.logAction(employee, "Logged Out");
+//        return ResponseEntity.ok(Map.of("message", "Logout successful"));
+//    }
+
+
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody Map<String, String> request) {
-        String email = request.get("email");
-        Employee employee = employeeService.findByEmail(email);
-        if (employee == null) {
-            throw new RuntimeException("User not found");
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid Authorization header"));
+            }
+
+            String token = authHeader.substring(7); // remove "Bearer "
+            String email = jwtUtil.extractClaims(token).getSubject();
+
+            if (email == null || email.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid token"));
+            }
+
+            activeTokenRepository.deleteById(email);
+            logger.info("Token removed from active session store for user: {}", email);
+
+            Employee employee = employeeService.findByEmail(email);
+            if (employee == null) {
+                logger.warn("Logout failed - user not found for email: {}", email);
+                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
+            }
+
+            auditService.logAction(employee, "Logged Out");
+            logger.info("User logged out successfully: {}", email);
+
+            return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+
+        } catch (Exception e) {
+            logger.error("Error during logout", e);
+            return ResponseEntity.status(500).body(Map.of("message", "Logout failed due to server error"));
         }
-        auditService.logAction(employee, "Logged Out");
-        return ResponseEntity.ok(Map.of("message", "Logout successful"));
     }
-
-
 
     @GetMapping
     public List<Employee> getAllEmployees() {
