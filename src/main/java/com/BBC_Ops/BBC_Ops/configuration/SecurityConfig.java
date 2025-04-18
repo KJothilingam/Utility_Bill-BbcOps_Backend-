@@ -25,14 +25,19 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/employees/generate-otp", "/employees/verify-otp").permitAll()
+                        .requestMatchers(
+                                "/employees/generate-otp", "/employees/verify-otp",
+                                "/customers/generate-otp", "/customers/verify-otp"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
+        // Only unified filter is needed now
         http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }

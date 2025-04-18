@@ -1,9 +1,16 @@
 package com.BBC_Ops.BBC_Ops.Controller;
 
+import com.BBC_Ops.BBC_Ops.Model.ActiveToken;
 import com.BBC_Ops.BBC_Ops.Model.ApiResponse;
 import com.BBC_Ops.BBC_Ops.Model.Customer;
+import com.BBC_Ops.BBC_Ops.Repository.ActiveTokenRepository;
 import com.BBC_Ops.BBC_Ops.Repository.CustomerRepository;
 import com.BBC_Ops.BBC_Ops.Service.CustomerService;
+import com.BBC_Ops.BBC_Ops.configuration.CustomerJwtUtil;
+import com.BBC_Ops.BBC_Ops.configuration.JwtUtil;
+import io.jsonwebtoken.Claims;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +29,16 @@ public class CustomerController {
     @Autowired
     private CustomerRepository customerRepository;
 
+    @Autowired
+    private CustomerJwtUtil customerJwtUtil;
 
+    @Autowired
+    private ActiveTokenRepository activeTokenRepository;
+
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomerController.class);
+
+    private Map<String, String> otpStorage = new HashMap<>();
     @GetMapping("/list")
     public ResponseEntity<List<Customer>> getAllCustomers() {
         List<Customer> customers = customerService.getAllCustomers();
@@ -99,7 +115,6 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
-    private Map<String, String> otpStorage = new HashMap<>();
 
     @PostMapping("/add")
     public ResponseEntity<Map<String, Object>> addCustomer(@RequestBody Customer customer) {
@@ -115,39 +130,124 @@ public class CustomerController {
     @PostMapping("/generate-otp")
     public ResponseEntity<?> generateOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
+        logger.info("OTP generation requested for email: {}", email);
+
         Customer customer = customerService.findByEmail(email);
         if (customer == null) {
+            logger.warn("OTP generation failed - email not registered: {}", email);
             return ResponseEntity.badRequest().body(Map.of("message", "Email not registered"));
         }
-        // Generate 6-digit OTP
+
         String otp = String.format("%06d", new Random().nextInt(999999));
-        // Store OTP temporarily (for demo purposes, use Redis in production)
         otpStorage.put(email, otp);
-        //  Print OTP in server logs
-        System.out.println("Generated OTP for " + email + ": " + otp);
+        logger.info("Generated OTP for {}: {}", email, otp);  // ⚠️ Avoid logging OTP in prod
+
         return ResponseEntity.ok(Map.of("message", "OTP sent successfully", "otp", otp));
     }
-
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         String enteredOtp = request.get("otp");
-        // Validate OTP
+
+        logger.info("OTP verification requested for email: {}", email);
+
         if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
-            otpStorage.remove(email); // Clear OTP after successful verification
-            // Fetch customer details
+            otpStorage.remove(email);
+
             Customer customer = customerService.findByEmail(email);
             if (customer == null) {
+                logger.warn("OTP verification failed - customer not found for email: {}", email);
                 return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
             }
+
+//            String token = jwtUtil.generateToken(customer);
+//            String email = customerJwtUtil.extractClaims(token).getSubject();
+            String token = customerJwtUtil.generateToken(customer);  // Add this line before using 'token'
+
+            ActiveToken activeToken = new ActiveToken();
+            activeToken.setEmail(email);
+            activeToken.setToken(token);
+            activeTokenRepository.save(activeToken);
+
+            logger.info("OTP verified successfully for {}. Token generated and login recorded.", email);
+
             return ResponseEntity.ok(Map.of(
-                    "message", "OTP verified successfully",
+                    "token", token,
                     "customerId", customer.getCustomerId(),
-                    "customerName", customer.getName() // Assuming getName() returns full name
+                    "customerName", customer.getName()
             ));
         }
+
+        logger.warn("Invalid OTP attempt for email: {}", email);
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        try {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Invalid Authorization header"));
+            }
+
+            String token = authHeader.substring(7);
+
+            // Use the injected instance to extract claims
+            Claims claims = customerJwtUtil.extractClaims(token);
+            String email = claims.getSubject();
+
+            activeTokenRepository.deleteById(email);
+            logger.info("Token removed from active session store for user: {}", email);
+
+            Customer customer = customerService.findByEmail(email);
+            if (customer == null) {
+                logger.warn("Logout failed - user not found for email: {}", email);
+                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
+            }
+
+            logger.info("User logged out successfully: {}", email);
+            return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+
+        } catch (Exception e) {
+            logger.error("Error during logout", e);
+            return ResponseEntity.status(500).body(Map.of("message", "Logout failed due to server error"));
+        }
+    }
+//    @PostMapping("/generate-otp")
+//    public ResponseEntity<?> generateOtp(@RequestBody Map<String, String> request) {
+//        String email = request.get("email");
+//        Customer customer = customerService.findByEmail(email);
+//        if (customer == null) {
+//            return ResponseEntity.badRequest().body(Map.of("message", "Email not registered"));
+//        }
+//        // Generate 6-digit OTP
+//        String otp = String.format("%06d", new Random().nextInt(999999));
+//        // Store OTP temporarily (for demo purposes, use Redis in production)
+//        otpStorage.put(email, otp);
+//        //  Print OTP in server logs
+//        System.out.println("Generated OTP for " + email + ": " + otp);
+//        return ResponseEntity.ok(Map.of("message", "OTP sent successfully", "otp", otp));
+//    }
+
+//    @PostMapping("/verify-otp")
+//    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
+//        String email = request.get("email");
+//        String enteredOtp = request.get("otp");
+//        // Validate OTP
+//        if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
+//            otpStorage.remove(email); // Clear OTP after successful verification
+//            // Fetch customer details
+//            Customer customer = customerService.findByEmail(email);
+//            if (customer == null) {
+//                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
+//            }
+//            return ResponseEntity.ok(Map.of(
+//                    "message", "OTP verified successfully",
+//                    "customerId", customer.getCustomerId(),
+//                    "customerName", customer.getName() // Assuming getName() returns full name
+//            ));
+//        }
+//        return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
+//    }
 
     //  Fetch customer by ID
     @GetMapping("/{id}")

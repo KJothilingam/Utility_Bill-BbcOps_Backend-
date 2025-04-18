@@ -92,46 +92,6 @@ public class EmployeeController {
         return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
     }
 
-//    @PostMapping("/verify-otp")
-//    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
-//        String email = request.get("email");
-//        String enteredOtp = request.get("otp");
-//
-//        // Validate OTP
-//        if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
-//            otpStorage.remove(email); // Clear OTP after successful verification
-//
-//            // Fetch employee details
-//            Employee employee = employeeService.findByEmail(email);
-//            if (employee == null) {
-//                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
-//            }
-//
-//            // 🔥 Audit login action here
-//            auditService.logAction(employee, "Logged In via OTP");
-//
-//            return ResponseEntity.ok(Map.of(
-//                    "message", "OTP verified successfully",
-//                    "userId", employee.getEmployeeId(),
-//                    "userName", employee.getName(),
-//                    "designation", employee.getDesignation()
-//            ));
-//        }
-//
-//        return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
-//    }
-
-//    @PostMapping("/logout")
-//    public ResponseEntity<?> logout(@RequestBody Map<String, String> request) {
-//        String email = request.get("email");
-//        Employee employee = employeeService.findByEmail(email);
-//        if (employee == null) {
-//            throw new RuntimeException("User not found");
-//        }
-//        auditService.logAction(employee, "Logged Out");
-//        return ResponseEntity.ok(Map.of("message", "Logout successful"));
-//    }
-
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {

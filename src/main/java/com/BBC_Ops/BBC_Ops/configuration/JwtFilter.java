@@ -1,8 +1,10 @@
 package com.BBC_Ops.BBC_Ops.configuration;
 
 import com.BBC_Ops.BBC_Ops.Model.ActiveToken;
+import com.BBC_Ops.BBC_Ops.Model.Customer;
 import com.BBC_Ops.BBC_Ops.Model.Employee;
 import com.BBC_Ops.BBC_Ops.Repository.ActiveTokenRepository;
+import com.BBC_Ops.BBC_Ops.Service.CustomerService;
 import com.BBC_Ops.BBC_Ops.Service.EmployeeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -28,19 +30,15 @@ import java.util.Map;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    private static final Logger logger = LoggerFactory.getLogger(JwtFilter.class);
+    @Autowired private JwtUtil jwtUtil;
+    @Autowired private CustomerJwtUtil customerJwtUtil;
 
-    @Autowired
-    private JwtUtil jwtUtil;
+    @Autowired private EmployeeService employeeService;
+    @Autowired private CustomerService customerService;
 
-    @Autowired
-    private EmployeeService employeeService;
+    @Autowired private ActiveTokenRepository activeTokenRepository;
 
-    @Autowired
-    private ActiveTokenRepository activeTokenRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+    @Autowired private ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -57,35 +55,51 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
+        String origin = request.getHeader("Origin");
 
         try {
-            Claims claims = jwtUtil.extractClaims(token);
-            String email = claims.getSubject();
-            logger.info("Extracted email from token: {}", email);
+            if ("http://localhost:4200".equals(origin)) {
+                // 🔐 EMPLOYEE
+                Claims claims = jwtUtil.extractClaims(token);
+                String email = claims.getSubject();
 
-            ActiveToken activeToken = activeTokenRepository.findByEmail(email);
-            if (activeToken == null || !activeToken.getToken().equals(token)) {
-                logger.warn("Token does not match active session for email: {}", email);
-                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+                validateActiveToken(email, token, response);
+
+                Employee employee = employeeService.findByEmail(email);
+                if (employee == null) {
+                    sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Employee not found");
+                    return;
+                }
+
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        employee, null, List.of(new SimpleGrantedAuthority(employee.getDesignation()))
+                );
+                SecurityContextHolder.getContext().setAuthentication(auth);
+
+            } else if ("http://localhost:5200".equals(origin)) {
+                // 🔐 CUSTOMER
+                Claims claims = customerJwtUtil.extractClaims(token);
+                String email = claims.getSubject();
+
+                validateActiveToken(email, token, response);
+
+                Customer customer = customerService.findByEmail(email);
+                if (customer == null) {
+                    sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Customer not found");
+                    return;
+                }
+
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        customer, null, List.of(new SimpleGrantedAuthority("CUSTOMER"))
+                );
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            } else {
+                logger.warn("Unknown Origin: " + origin);
+                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Unknown client origin");
                 return;
             }
-
-            Employee employee = employeeService.findByEmail(email);
-            if (employee == null) {
-                logger.warn("Employee not found for email: {}", email);
-                sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "User not found");
-                return;
-            }
-
-            logger.info("Authentication successful for user: {}", employee.getEmail());
-
-            UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                    employee, null, List.of(new SimpleGrantedAuthority(employee.getDesignation()))
-            );
-            SecurityContextHolder.getContext().setAuthentication(auth);
 
         } catch (ExpiredJwtException e) {
-            logger.warn("JWT token expired: {}", e.getMessage());
             sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Token expired");
             return;
         } catch (Exception e) {
@@ -97,10 +111,18 @@ public class JwtFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    private void validateActiveToken(String email, String token, HttpServletResponse response) throws IOException {
+        ActiveToken activeToken = activeTokenRepository.findByEmail(email);
+        if (activeToken == null || !activeToken.getToken().equals(token)) {
+            sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+            return; // ✅ This is required
+        }
+    }
+
+
     private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("error", message);
-
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setStatus(status);
