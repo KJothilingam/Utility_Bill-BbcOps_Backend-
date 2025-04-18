@@ -18,9 +18,6 @@ public class JwtUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtil.class);
 
-    // Use a SecretKey object instead of a string for the secret key
-//    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-
     private final SecretKey secretKey;
 
     public JwtUtil(SecretKey secretKey) {
