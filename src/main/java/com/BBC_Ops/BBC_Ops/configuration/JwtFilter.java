@@ -13,8 +13,6 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -59,7 +57,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             if ("http://localhost:4200".equals(origin)) {
-                // 🔐 EMPLOYEE
+                //  EMPLOYEE
                 Claims claims = jwtUtil.extractClaims(token);
                 String email = claims.getSubject();
 
@@ -77,7 +75,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
 
             } else if ("http://localhost:5200".equals(origin)) {
-                // 🔐 CUSTOMER
+                //  CUSTOMER
                 Claims claims = customerJwtUtil.extractClaims(token);
                 String email = claims.getSubject();
 
@@ -115,7 +113,7 @@ public class JwtFilter extends OncePerRequestFilter {
         ActiveToken activeToken = activeTokenRepository.findByEmail(email);
         if (activeToken == null || !activeToken.getToken().equals(token)) {
             sendErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
-            return; // ✅ This is required
+            return; //  This is required
         }
     }
 

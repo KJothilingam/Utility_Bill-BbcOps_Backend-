@@ -144,6 +144,7 @@ public class CustomerController {
 
         return ResponseEntity.ok(Map.of("message", "OTP sent successfully", "otp", otp));
     }
+
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
         String email = request.get("email");
@@ -212,42 +213,6 @@ public class CustomerController {
             return ResponseEntity.status(500).body(Map.of("message", "Logout failed due to server error"));
         }
     }
-//    @PostMapping("/generate-otp")
-//    public ResponseEntity<?> generateOtp(@RequestBody Map<String, String> request) {
-//        String email = request.get("email");
-//        Customer customer = customerService.findByEmail(email);
-//        if (customer == null) {
-//            return ResponseEntity.badRequest().body(Map.of("message", "Email not registered"));
-//        }
-//        // Generate 6-digit OTP
-//        String otp = String.format("%06d", new Random().nextInt(999999));
-//        // Store OTP temporarily (for demo purposes, use Redis in production)
-//        otpStorage.put(email, otp);
-//        //  Print OTP in server logs
-//        System.out.println("Generated OTP for " + email + ": " + otp);
-//        return ResponseEntity.ok(Map.of("message", "OTP sent successfully", "otp", otp));
-//    }
-
-//    @PostMapping("/verify-otp")
-//    public ResponseEntity<?> verifyOtp(@RequestBody Map<String, String> request) {
-//        String email = request.get("email");
-//        String enteredOtp = request.get("otp");
-//        // Validate OTP
-//        if (otpStorage.containsKey(email) && otpStorage.get(email).equals(enteredOtp)) {
-//            otpStorage.remove(email); // Clear OTP after successful verification
-//            // Fetch customer details
-//            Customer customer = customerService.findByEmail(email);
-//            if (customer == null) {
-//                return ResponseEntity.badRequest().body(Map.of("message", "User not found"));
-//            }
-//            return ResponseEntity.ok(Map.of(
-//                    "message", "OTP verified successfully",
-//                    "customerId", customer.getCustomerId(),
-//                    "customerName", customer.getName() // Assuming getName() returns full name
-//            ));
-//        }
-//        return ResponseEntity.badRequest().body(Map.of("message", "Invalid OTP"));
-//    }
 
     //  Fetch customer by ID
     @GetMapping("/{id}")

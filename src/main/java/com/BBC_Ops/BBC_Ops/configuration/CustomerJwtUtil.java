@@ -2,7 +2,6 @@ package com.BBC_Ops.BBC_Ops.configuration;
 
 import com.BBC_Ops.BBC_Ops.Model.Customer;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -14,8 +13,6 @@ import java.util.Date;
 public class CustomerJwtUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(CustomerJwtUtil.class);
-//    private final SecretKey SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-
     private final SecretKey secretKey;
 
     public CustomerJwtUtil(SecretKey secretKey) {

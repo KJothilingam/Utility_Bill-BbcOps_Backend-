@@ -54,7 +54,6 @@ public class Customer {
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", address='" + address + '\'' +
                 ", unitConsumption=" + unitConsumption +
-//                ", billDueDate=" + billDueDate +
                 ", meterNumber='" + meterNumber + '\'' +
                 ", connectionType=" + connectionType +
                 ", createdAt=" + createdAt +

@@ -19,7 +19,7 @@ public class AuditContoller {
 
     @GetMapping("/audit-logs")
     public List<EmployeeAuditLog> getAllLogs() {
-        return auditService.getAllLogs(); // Create a `getAllLogs()` method in your AuditService
+        return auditService.getAllLogs();
     }
 
     @PostMapping("/log")

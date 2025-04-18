@@ -26,7 +26,7 @@ public interface BillRepository extends JpaRepository<Bill, Long> {
 
     List<Bill> findAll();
 
-    // ✅ Fetch unpaid bills (both PENDING & OVERDUE)
+    //  Fetch unpaid bills (both PENDING & OVERDUE)
     List<Bill> findByCustomer_MeterNumberAndPaymentStatusIn(String meterNumber, List<PaymentStatus> statuses);
 
     @Query(value = "SELECT b FROM Bill b WHERE b.paymentStatus = 'PENDING' ORDER BY b.dueDate DESC")

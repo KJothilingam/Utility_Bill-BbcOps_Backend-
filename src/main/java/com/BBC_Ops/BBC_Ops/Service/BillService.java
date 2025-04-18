@@ -61,10 +61,6 @@ public class BillService {
     public Bill generateBill(String meterNumber, int unitConsumed, Date monthDate) {
         logger.info("Generating bill for meterNumber={}, unitConsumed={}, monthDate={}",
                 meterNumber, unitConsumed, monthDate);
-//        System.out.println("Inside generateBill Service");
-//        System.out.println("Meter Number: " + meterNumber);
-//        System.out.println("Unit Consumed: " + unitConsumed);
-//        System.out.println("Month Date: " + monthDate);
 
         if (unitConsumed <= 0) {
             logger.warn("Invalid unit consumption: {}", unitConsumed);
@@ -95,7 +91,7 @@ public class BillService {
             logger.info("Using StandardBillingStrategy.");
         }
 
-        // 🟢 Pass connectionType here
+        //  Pass connectionType here
         double totalBillAmount = billingContext.generateBill(unitConsumed, connectionType);
 
         Calendar calendar = Calendar.getInstance();
@@ -118,7 +114,7 @@ public class BillService {
         customer.setUnitConsumption(0);
         customerRepository.save(customer);
 
-        logger.info("✅ Bill Generated: invoiceId={}, customerId={}, amount={}, dueDate={}",
+        logger.info(" Bill Generated: invoiceId={}, customerId={}, amount={}, dueDate={}",
                 bill.getInvoiceId(), customer.getCustomerId(), totalBillAmount, dueDate);
 
         return savedBill;

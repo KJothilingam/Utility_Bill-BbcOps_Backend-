@@ -42,7 +42,6 @@ public class BillController {
         }
     }
 
-    // Inner class for request payload
     public static class BillRequest {
         private String meterNumber;
         private int unitConsumed;
